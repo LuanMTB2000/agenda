@@ -549,7 +549,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDUwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLnRvcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMDAwMCIvPgo8dGV4dCB4PSIyNSIgeT0iMTIwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaGChbWEsIEdlbmV2YSwgVmVyZGFuYSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI3MiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmZmZmZiI+TXIgSmFjazwvdGV4dD4KPGNpcmNsZSBjeD0iMzgwIiBjeT0iMTE1IiByPSI4IiBmaWxsPSIjZGMyNjI2Ii8+Cjx0ZXh0IHg9IjE1NSIgeT0iMTcwIiBmb250LWZhbWl5PSJTZWdvZSBVSSwgVGFob21hLCBHZW5ldmEsIFZlcmRhbmEsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZmlsbD0iI2ZmZmZmZiI+VmVzdGUgc2V1IG1vbWVudG8hPC90ZXh0Pgo8L3N2Zz4=" alt="MrJack Logo" class="logo">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDUwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLnRvcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMDAwMCIvPgo8dGV4dCB4PSIyNSIgeT0iMTIwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifCiAgICAgICAgICAgICAgZm9udC1zaXplPSI3MiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmZmZmZiI+TXIgSmFjazwvdGV4dD4KPGNpcmNsZSBjeD0iMzgwIiBjeT0iMTE1IiByPSI4IiBmaWxsPSIjZGMyNjI2Ii8+Cjx0ZXh0IHg9IjE1NSIgeT0iMTcwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifCiAgICAgICAgICAgICAgZm9udC1zaXplPSIxOCIgZm9udC1zdHlsZT0iaXRhbGljIiBmaWxsPSIjZmZmZmZmIj5WZXN0ZSBzZXUgbW9tZW50byE8L3RleHQ+Cjwvc3ZnPg==" alt="MrJack Logo" class="logo">
             <h1>Sistema de Agendamentos</h1>
             <p>Veste seu momento!</p>
         </div>
@@ -613,7 +613,7 @@
 
                             <div class="form-group">
                                 <label for="telefone">📞 Telefone</label>
-                                <input type="tel" id="telefone" required placeholder="(00) 00000-0000">
+                                <input type="tel" id="telefone" required placeholder="Apenas números, ex: 34991999999">
                             </div>
 
                             <div class="form-group">
@@ -1139,10 +1139,10 @@
                 return;
             }
 
-            // Validação de telefone (formato simples)
-            const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
+            // NOVA VALIDAÇÃO DE TELEFONE: Aceita apenas 10 ou 11 dígitos numéricos
+            const phoneRegex = /^\d{10,11}$/;
             if (!phoneRegex.test(telefone)) {
-                showMessage('Formato de telefone inválido. Use (XX) XXXXX-XXXX ou (XX) XXXX-XXXX.', 'error');
+                showMessage('Formato de telefone inválido. Use apenas números, incluindo o DDD (10 ou 11 dígitos).', 'error');
                 return;
             }
 
