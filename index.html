@@ -652,11 +652,6 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="email">📧 Email</label>
-                                <input type="email" id="email" placeholder="cliente@email.com">
-                            </div>
-
-                            <div class="form-group">
                                 <label for="funcionario">👨‍💼 Atendente</label>
                                 <select id="funcionario" required>
                                     <option value="">Selecione o atendente</option>
@@ -740,7 +735,7 @@
 
         // Horários de funcionamento
         const WORKING_HOURS = {
-            start: '10:00', // Alterado para 10:00 para todos os dias
+            start: '10:00',
             end: '17:30',
             workingDays: [2, 3, 4, 5] // Terça(2) a Sexta(5)
         };
@@ -1138,18 +1133,6 @@
                         slotElement.classList.add(slot.availabilityClass);
                     }
 
-                    if (slot.badgeContent && !slot.isPastTime) {
-                        const badge = document.createElement('span');
-                        badge.classList.add('availability-badge');
-                        if (slot.availabilityClass === 'low') {
-                            badge.classList.add('low');
-                        } else if (slot.availabilityClass === 'full') {
-                            badge.classList.add('full');
-                        }
-                        badge.textContent = slot.badgeContent.split('(')[0].trim().substring(0, 1);
-                        slotElement.appendChild(badge);
-                    }
-
                     if (!slot.isFull && !slot.isPastTime) {
                         slotElement.addEventListener('click', () => {
                             document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
@@ -1191,7 +1174,6 @@
 
             const cliente = document.getElementById('cliente').value;
             const telefone = document.getElementById('telefone').value;
-            const email = document.getElementById('email').value;
             const funcionario = document.getElementById('funcionario').value;
             const servico = document.getElementById('servico').value;
             const observacoes = document.getElementById('observacoes').value;
@@ -1206,44 +1188,35 @@
                 return;
             }
 
-            // NOVA VALIDAÇÃO DE TELEFONE: Aceita apenas 10 ou 11 dígitos numéricos
             const phoneRegex = /^\d{10,11}$/;
             if (!phoneRegex.test(telefone)) {
                 showMessage('Formato de telefone inválido. Use apenas números, incluindo o DDD (10 ou 11 dígitos).', 'error');
                 return;
             }
 
-            // Validação de e-mail (básica)
-            if (email && (!email.includes('@') || email.length < 5)) {
-                showMessage('Formato de email inválido.', 'error');
-                return;
-            }
-
             try {
-                // Verificar disponibilidade novamente antes de agendar
                 const appointmentsRef = db.collection('agendamentos');
                 const snapshot = await appointmentsRef
                     .where('data', '==', selectedDate)
                     .where('hora', '==', selectedTime)
-                    .where('status', '!=', 'cancelado') // Não contar agendamentos cancelados
+                    .where('status', '!=', 'cancelado')
                     .get();
 
                 if (snapshot.docs.length >= MAX_APPOINTMENTS_PER_HOUR) {
                     showMessage('Este horário não está mais disponível. Por favor, selecione outro.', 'error');
-                    await loadTimeSlots(selectedDate); // Recarrega os horários para refletir a indisponibilidade
+                    await loadTimeSlots(selectedDate);
                     return;
                 }
 
                 await db.collection('agendamentos').add({
                     cliente,
                     telefone,
-                    email,
                     funcionario,
                     servico,
                     data: selectedDate,
                     hora: selectedTime,
                     observacoes,
-                    status: 'agendado', // Status inicial
+                    status: 'agendado',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
@@ -1252,7 +1225,6 @@
                 selectedDate = null;
                 selectedTime = null;
                 document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
-                // Ao resetar o formulário, reinicializa o calendário para o mês atual
                 currentCalendarDate = new Date(); 
                 generateDaySelector(); 
             } catch (error) {
@@ -1272,34 +1244,18 @@
             doc.setFontSize(22);
             doc.text(`Agendamentos do Dia: ${formatDate(date)}`, 15, 20);
             
-            doc.setFontSize(12);
+            doc.setFontSize(14);
             let y = 30; // Posição Y inicial do texto
 
             appointments.forEach(agendamento => {
-                // Verifique se há espaço suficiente para o próximo agendamento
-                if (y > 280) { // Cerca de 280mm é o fim de uma página A4
+                if (y > 280) {
                     doc.addPage();
-                    y = 20; // Nova posição Y na nova página
+                    y = 20;
                 }
 
-                doc.text(`--- Horário: ${agendamento.hora} ---`, 15, y);
+                // Apenas nome e horário, conforme solicitado
+                doc.text(`- ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
-                doc.text(`Cliente: ${agendamento.cliente}`, 15, y);
-                y += 7;
-                doc.text(`Telefone: ${agendamento.telefone}`, 15, y);
-                y += 7;
-                doc.text(`Email: ${agendamento.email || 'N/A'}`, 15, y);
-                y += 7;
-                doc.text(`Atendente: ${agendamento.funcionario}`, 15, y);
-                y += 7;
-                doc.text(`Serviço: ${agendamento.servico}`, 15, y);
-                y += 7;
-                if (agendamento.observacoes) {
-                    doc.text(`Observações: ${agendamento.observacoes}`, 15, y);
-                    y += 7;
-                }
-                doc.text(`Status: ${agendamento.status}`, 15, y);
-                y += 15; // Espaço extra entre agendamentos
             });
 
             doc.save(`agendamentos_${date}.pdf`);
@@ -1317,7 +1273,7 @@
 
             try {
                 const snapshot = await db.collection('agendamentos')
-                    .orderBy('data', 'asc') // Ordena por data crescente
+                    .orderBy('data', 'asc')
                     .get();
 
                 if (snapshot.empty) {
@@ -1325,7 +1281,6 @@
                     return;
                 }
                 
-                // Agrupa os agendamentos por data
                 const agendamentosPorDia = {};
                 snapshot.forEach(doc => {
                     const agendamento = { ...doc.data(), id: doc.id };
@@ -1338,16 +1293,13 @@
 
                 agendamentosList.innerHTML = '';
                 
-                // Obtém as datas e as ordena
                 const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => new Date(a) - new Date(b));
                 
                 datasOrdenadas.forEach(data => {
                     const agendamentosDoDia = agendamentosPorDia[data];
                     
-                    // Ordena os agendamentos do dia por hora
                     agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
                     
-                    // Cria o contêiner para o dia
                     const diaContainer = document.createElement('div');
                     diaContainer.classList.add('agendamentos-dia');
                     
@@ -1367,7 +1319,6 @@
                                 </div>
                                 <div class="agendamento-info">
                                     <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}</div>
-                                    ${agendamento.email ? `<div class="info-item">📧 <strong>Email:</strong> ${agendamento.email}</div>` : ''}
                                     <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
                                     <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
                                 </div>
