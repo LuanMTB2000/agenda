@@ -584,7 +584,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDUwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLnRvcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMDAwMCIvPgo8dGV4dCB4PSIyNSIgeT0iMTIwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifCiAgICAgICAgICAgICAgZm9udC1zaXplPSI3MiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmZmZmZiI+TXIgSmFjazwvdGV4dD4KPGNpcmNsZSBjeD0iMzgwIiBjeT0iMTE1IiByPSI4IiBmaWxsPSIjZGMyNjI2Ii8+Cjx0ZXh0IHg9IjE1NSIgeT0iMTcwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifCiAgICAgICAgICAgICAgZm9udC1zaXplPSIxOCIgZm9udC1zdHlsZT0iaXRhbGljIiBmaWxsPSIjZmZmZmZmIj5WZXN0ZSBzZXUgbW9tZW50byE8L3RleHQ+Cjwvc3ZnPg==" alt="MrJack Logo" class="logo">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDUwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLnRvcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMDAwMCIvPgo8dGV4dCB4PSIyNSIgeT0iMTIwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifCiAgICAgICAgICAgICAgZm9udC1zaXplPSI3MiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmZmZmZiI+TXIgSmFjazwvdGV4dD4KPGNpcmNsZSBjeD0iMzgwIiBjeT0iMTE1IiByPSI4IiBmaWxsPSIjZGMyNjI2Ii8+Cjx0ZXh0IHg9IjE1NSIgeT0iMTcwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifIGZvbnQtc2l6ZT0iMTgiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZmlsbD0iI2ZmZmZmZiI+VmVzdGUgc2V1IG1vbWVudG8hPC90ZXh0Pgo8L3N2Zz4=" alt="MrJack Logo" class="logo">
             <h1>Sistema de Agendamentos</h1>
             <p>Veste seu momento!</p>
         </div>
@@ -740,7 +740,7 @@
             workingDays: [2, 3, 4, 5] // Terça(2) a Sexta(5)
         };
 
-        const MAX_APPOINTMENTS_PER_HOUR = 4;
+        const MAX_APPOINTMENTS_PER_HOUR = 3;
         
         // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15']; // Adicionado o feriado do dia 15/08/2025
@@ -1245,7 +1245,7 @@
             doc.text(`Agendamentos do Dia: ${formatDate(date)}`, 15, 20);
             
             doc.setFontSize(14);
-            let y = 30; // Posição Y inicial do texto
+            let y = 30;
 
             appointments.forEach(agendamento => {
                 if (y > 280) {
@@ -1253,7 +1253,6 @@
                     y = 20;
                 }
 
-                // Apenas nome e horário, conforme solicitado
                 doc.text(`- ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
