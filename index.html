@@ -1026,7 +1026,8 @@
                 });
 
                 // Lógica para definir o horário de início com base no dia da semana
-                const selectedDay = new Date(dateString).getDay();
+                // CORREÇÃO: Criação do objeto Date de forma segura para o fuso horário
+                const selectedDay = new Date(dateString + 'T12:00:00').getDay();
                 let startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
                 let startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
                 
