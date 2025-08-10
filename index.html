@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MrJack - Sistema de Agendamentos</title>
     <style>
-        /* Estilos CSS (inalterados do seu código original) */
+        /* Estilos CSS */
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #000; /* Alterado para preto */
             min-height: 100vh;
             padding: 20px;
         }
@@ -301,6 +301,13 @@
             font-size: 14px;
             margin: 0;
         }
+        .btn-alterar {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            width: auto;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 0;
+        }
 
         .agendamento-card {
             background: white;
@@ -438,18 +445,6 @@
             font-size: 18px;
         }
 
-        .loading::before {
-            content: '';
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #dc2626;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -576,6 +571,55 @@
                 justify-content: center;
             }
         }
+
+        /* Estilos para a modal de edição */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            color: black;
+        }
+
+        #editTimeSlots {
+            margin-top: 15px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -584,7 +628,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDUwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLnRvcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMDAwMCIvPgo8dGV4dCB4PSIyNSIgeT0iMTIwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifCiAgICAgICAgICAgICAgZm9udC1zaXplPSI3MiIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmZmZmZiI+TXIgSmFjazwvdGV4dD4KPGNpcmNsZSBjeD0iMzgwIiBjeT0iMTE1IiByPSI4IiBmaWxsPSIjZGMyNjI2Ii8+Cjx0ZXh0IHg9IjE1NSIgeT0iMTcwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIFRhaG9tYSwgR2VuZXZhLCBWZXJkYW5hLCBzYW5zLXNlcmifIGZvbnQtc2l6ZT0iMTgiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZmlsbD0iI2ZmZmZmZiI+VmVzdGUgc2V1IG1vbWVudG8hPC90ZXh0Pgo8L3N2Zz4=" alt="MrJack Logo" class="logo">
             <h1>Sistema de Agendamentos</h1>
             <p>Veste seu momento!</p>
         </div>
@@ -719,15 +762,39 @@
         </div>
     </div>
 
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeEditModal()">&times;</span>
+            <h3>Alterar Agendamento</h3>
+            <div id="edit-message-area"></div>
+            <div id="edit-agendamento-details"></div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>📅 Nova Data</label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(-1)">&#9664; Anterior</button>
+                        <span id="editCurrentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
+                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(1)">Próximo &#9654;</button>
+                    </div>
+                    <div class="day-selector" id="editDaySelector"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label>🕐 Novos Horários Disponíveis</label>
+                    <div class="time-slots" id="editTimeSlots"></div>
+                </div>
+            </div>
+            <button type="button" class="btn" onclick="saveEditedAppointment()">Salvar Alterações</button>
+        </div>
+    </div>
+
     <script>
         // Variáveis globais
         let db = null;
         let isConfigured = false;
         let selectedDate = null;
         let selectedTime = null;
-
-        // Variável global para controlar o mês/ano atual do calendário
-        let currentCalendarDate = new Date(); 
+        let editAppointmentId = null;
+        let editCalendarDate = new Date();
 
         // Constante global para a data/hora atual (usada para horários passados)
         const NOW_DATE_GLOBAL = new Date(); 
@@ -765,8 +832,8 @@
                 loadAgendamentos();
             } else if (tabName === 'novo') {
                 // Ao mostrar a aba 'novo', sempre reinicializa a data do calendário para hoje
-                currentCalendarDate = new Date(); 
-                generateDaySelector(); // Garante que o calendário seja gerado e um dia selecionado
+                editCalendarDate = new Date(); 
+                generateDaySelector();
             }
         }
 
@@ -1026,24 +1093,23 @@
                 });
 
                 // Lógica para definir o horário de início com base no dia da semana
-                // CORREÇÃO: Criação do objeto Date de forma segura para o fuso horário
                 const selectedDay = new Date(dateString + 'T12:00:00').getDay();
                 let startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
                 let startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
                 
-                // Horário especial para terça-feira (dia 2)
-                if (selectedDay === 1) {
-                    startHour = 14;
-                    startMinute = 0;
-                }
+                // Remove a lógica de horário especial para terça-feira
+                // if (selectedDay === 2) {
+                //     startHour = 14;
+                //     startMinute = 0;
+                // }
                 
                 const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
                 const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
 
-                let loopStartTime = new Date(dateString);
+                let loopStartTime = new Date(dateString + 'T12:00:00');
                 loopStartTime.setHours(startHour, startMinute, 0, 0);
 
-                const endTime = new Date(dateString);
+                const endTime = new Date(dateString + 'T12:00:00');
                 endTime.setHours(endHour, endMinute, 0, 0);
 
                 // Se o dia selecionado for HOJE, ajusta o horário de início para a próxima meia hora válida
@@ -1067,6 +1133,7 @@
                 const availableSlots = [];
                 let currentTimeSlot = new Date(loopStartTime);
 
+                // IMPORTANTE: Aqui está a lógica que bloqueia horários já passados ou lotados
                 if (currentTimeSlot > endTime) {
                     timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
                     return;
@@ -1086,6 +1153,7 @@
                     let availabilityClass = '';
                     let badgeContent = '';
 
+                    // Lógica que define a classe de disponibilidade
                     if (isFull || isPastTime) {
                         availabilityClass = 'unavailable';
                         if (isFull) {
@@ -1382,4 +1450,3 @@
     </script>
 </body>
 </html>
-
