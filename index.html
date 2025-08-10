@@ -153,6 +153,50 @@
             gap: 10px;
         }
 
+        /* Estilos para o novo layout do h2 na aba de lista */
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        
+        .list-header h2 {
+            margin: 0;
+            margin-bottom: 0px;
+        }
+
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 350px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+        
+        .search-container svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -635,48 +679,9 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('novo')">✨ Novo Agendamento</button>
             <button class="tab" onclick="showTab('lista')">📋 Agendamentos</button>
-            <button class="tab" onclick="showTab('config')">⚙️ Configuração</button>
         </div>
 
         <div class="content">
-            <div id="config-tab" class="hidden">
-                <div class="setup-instructions">
-                    <h3>🔧 Configuração do Firebase</h3>
-                    <p><strong>Siga estes passos pelo celular:</strong></p>
-                    <ol style="margin: 15px 0; padding-left: 20px;">
-                        <li>Acesse <strong>console.firebase.google.com</strong></li>
-                        <li>Clique em "Criar projeto"</li>
-                        <li>Nomeie seu projeto (ex: "mrjack-agenda")</li>
-                        <li>Vá em "Firestore Database" → "Criar banco de dados"</li>
-                        <li>Escolha "Modo de teste" por enquanto</li>
-                        <li>Vá em "Configurações do projeto" → "Seus aplicativos"</li>
-                        <li>Clique no ícone "</>" para adicionar app web</li>
-                        <li>Copie as configurações abaixo:</li>
-                    </ol>
-                </div>
-
-                <div class="config-section">
-                    <h3>🔑 Configurações do Firebase</h3>
-                    <form id="configForm">
-                        <div class="form-group">
-                            <label for="apiKey">API Key:</label>
-                            <input type="text" id="apiKey" placeholder="Cole aqui sua API Key" value="AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ">
-                        </div>
-                        <div class="form-group">
-                            <label for="authDomain">Auth Domain:</label>
-                            <input type="text" id="authDomain" placeholder="seuprojeto.firebaseapp.com" value="agenda-mr-jack.firebaseapp.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="projectId">Project ID:</label>
-                            <input type="text" id="projectId" placeholder="seuprojeto" value="agenda-mr-jack">
-                        </div>
-                        <button type="button" class="btn" onclick="saveConfig()">💾 Salvar Configuração</button>
-                    </form>
-                </div>
-
-                <div id="config-status"></div>
-            </div>
-
             <div id="novo-tab">
                 <div class="form-section">
                     <h2>✨ Novo Agendamento</h2>
@@ -753,7 +758,13 @@
 
             <div id="lista-tab" class="hidden">
                 <div class="form-section">
-                    <h2>📋 Lista de Agendamentos</h2>
+                    <div class="list-header">
+                        <h2>📋 Lista de Agendamentos</h2>
+                        <div class="search-container">
+                            <input type="text" id="search-input" placeholder="Pesquisar por cliente..." oninput="filterAgendamentos(this.value)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                    </div>
                     <div id="agendamentos-list">
                         <div class="loading">Carregando agendamentos...</div>
                     </div>
@@ -796,7 +807,8 @@
         let editAppointmentId = null;
         let editCalendarDate = new Date();
         let currentCalendarDate = new Date();
-        
+        let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
+
         // Constante global para a data/hora atual (usada para horários passados)
         const NOW_DATE_GLOBAL = new Date(); 
         NOW_DATE_GLOBAL.setSeconds(0, 0); // Zera segundos e milissegundos para precisão da meia hora
@@ -805,13 +817,29 @@
         const WORKING_HOURS = {
             start: '10:00',
             end: '17:00',
-            workingDays: [2, 3, 4, 5] // Terça(2) a Sexta(5)
+            workingDays: [1, 2, 3, 4, 5] // Adicionado segunda-feira (1)
         };
-
+        
         const MAX_APPOINTMENTS_PER_HOUR = 4;
         
         // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15']; // Adicionado o feriado do dia 15/08/2025
+
+        // Funções do Firebase
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ",
+            authDomain: "agenda-mr-jack.firebaseapp.com",
+            projectId: "agenda-mr-jack"
+        };
+        
+        function initFirebase() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            db = firebase.firestore();
+            isConfigured = true;
+            console.log('Firebase inicializado com sucesso!');
+        }
 
         // Função para mostrar abas
         function showTab(tabName) {
@@ -832,114 +860,16 @@
             if (tabName === 'lista') {
                 loadAgendamentos();
             } else if (tabName === 'novo') {
-                // Ao mostrar a aba 'novo', sempre reinicializa a data do calendário para hoje
                 currentCalendarDate = new Date(); 
-                generateDaySelector(); // Garante que o calendário seja gerado e um dia selecionado
+                generateDaySelector(); 
             }
-        }
-
-        // Função para salvar configuração
-        function saveConfig() {
-            const apiKey = document.getElementById('apiKey').value;
-            const authDomain = document.getElementById('authDomain').value;
-            const projectId = document.getElementById('projectId').value;
-
-            if (!apiKey || !authDomain || !projectId) {
-                showMessage('Por favor, preencha todos os campos de configuração', 'error');
-                return;
-            }
-
-            const config = { apiKey, authDomain, projectId };
-            sessionStorage.setItem('firebaseConfig', JSON.stringify(config));
-
-            try {
-                initFirebase(config);
-                document.getElementById('config-status').innerHTML = `
-                    <div class="success">
-                        ✅ <strong>Configuração salva com sucesso!</strong><br>
-                        Agora você pode criar agendamentos normalmente.
-                    </div>
-                `;
-                isConfigured = true;
-            } catch (error) {
-                document.getElementById('config-status').innerHTML = `
-                    <div class="error">
-                        ❌ <strong>Erro na configuração:</strong><br>
-                        Verifique se os dados estão corretos: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // Função para inicializar Firebase
-        function initFirebase(config) {
-            const firebaseConfig = {
-                apiKey: config.apiKey,
-                authDomain: config.authDomain,
-                projectId: config.projectId,
-                storageBucket: config.projectId + ".appspot.com",
-                messagingSenderId: "792947416467",
-                appId: "1:792947416467:web:9c8aa1b17306bd4cef1c66"
-            };
-
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            
-            db = firebase.firestore();
-            console.log('Firebase inicializado com sucesso!');
         }
 
         // Carregar configuração ao iniciar
         document.addEventListener('DOMContentLoaded', () => {
-            const storedConfig = sessionStorage.getItem('firebaseConfig');
-            if (storedConfig) {
-                const config = JSON.parse(storedConfig);
-                document.getElementById('apiKey').value = config.apiKey;
-                document.getElementById('authDomain').value = config.authDomain;
-                document.getElementById('projectId').value = config.projectId;
-                try {
-                    initFirebase(config);
-                    isConfigured = true;
-                    showTab('novo'); 
-                    document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
-                } catch (error) {
-                    document.getElementById('config-status').innerHTML = `
-                        <div class="error">
-                            ❌ <strong>Erro ao carregar configuração:</strong><br>
-                            ${error.message}. Por favor, reconfigure.
-                        </div>
-                    `;
-                    showTab('config'); 
-                    document.querySelector('.tab[onclick="showTab(\'config\')"]').classList.add('active');
-                }
-            } else {
-                // Se não houver configuração salva, preenche com os valores padrão do seu console Firebase
-                document.getElementById('apiKey').value = "AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ";
-                document.getElementById('authDomain').value = "agenda-mr-jack.firebaseapp.com";
-                document.getElementById('projectId').value = "agenda-mr-jack";
-                
-                // Tenta inicializar com os valores padrão
-                try {
-                    initFirebase({
-                        apiKey: "AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ",
-                        authDomain: "agenda-mr-jack.firebaseapp.com",
-                        projectId: "agenda-mr-jack"
-                    });
-                    isConfigured = true;
-                    showTab('novo');
-                    document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
-                } catch (error) {
-                    document.getElementById('config-status').innerHTML = `
-                        <div class="error">
-                            ❌ <strong>Erro ao inicializar Firebase com valores padrão:</strong><br>
-                            ${error.message}. Por favor, verifique e salve a configuração.
-                        </div>
-                    `;
-                    showTab('config');
-                    document.querySelector('.tab[onclick="showTab(\'config\')"]').classList.add('active');
-                }
-            }
+            initFirebase();
+            showTab('novo'); 
+            document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
         });
 
         // Função para mostrar mensagens
@@ -1008,11 +938,15 @@
                     dayBtn.classList.add('day-btn');
                     dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
                     dayBtn.dataset.date = dateString;
+                    dayBtn.dataset.dayOfWeek = dayOfWeek; // Armazena o dia da semana
+
                     dayBtn.addEventListener('click', () => {
                         document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
                         dayBtn.classList.add('active');
                         selectedDate = dayBtn.dataset.date;
                         selectedTime = null;
+                        
+                        updateServiceOptions(dayBtn.dataset.dayOfWeek);
                         loadTimeSlots(selectedDate);
                     });
                     daySelector.appendChild(dayBtn);
@@ -1023,14 +957,18 @@
                     }
                 }
             }
-
+            
             if (selectedDate) {
                 const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
                 if (activeBtn) {
                     activeBtn.classList.add('active');
+                    updateServiceOptions(activeBtn.dataset.dayOfWeek);
                     loadTimeSlots(selectedDate);
                 } else if (firstDayFound) {
-                    daySelector.querySelector(`[data-date="${selectedDate}"]`).classList.add('active');
+                    const firstBtn = daySelector.querySelector('.day-btn');
+                    firstBtn.classList.add('active');
+                    selectedDate = firstBtn.dataset.date;
+                    updateServiceOptions(firstBtn.dataset.dayOfWeek);
                     loadTimeSlots(selectedDate);
                 } else {
                     document.getElementById('timeSlots').innerHTML = `<div class="loading">Nenhum dia disponível para agendamento neste mês.</div>`;
@@ -1040,12 +978,30 @@
                 document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
             }
         }
+        
+        // Função para atualizar as opções de serviço com base no dia da semana
+        function updateServiceOptions(dayOfWeek) {
+            const servicoSelect = document.getElementById('servico');
+            servicoSelect.innerHTML = '<option value="">Selecione o serviço</option>';
 
+            const isMonday = parseInt(dayOfWeek) === 1;
+
+            if (isMonday) {
+                servicoSelect.innerHTML += `<option value="Atendimento">Atendimento</option>`;
+                
+            } else {
+                servicoSelect.innerHTML += `
+                    <option value="Atendimento">Atendimento</option>
+                    <option value="Prova">Prova</option>
+                `;
+            }
+            servicoSelect.selectedIndex = 0; // Resetar para a primeira opção
+        }
 
         // Função para carregar horários disponíveis
         async function loadTimeSlots(dateString) {
             if (!db) {
-                document.getElementById('timeSlots').innerHTML = `<div class="error">Firebase não configurado. Vá para a aba "Configuração".</div>`;
+                document.getElementById('timeSlots').innerHTML = `<div class="error">Firebase não configurado. Por favor, tente recarregar a página.</div>`;
                 return;
             }
             
@@ -1392,9 +1348,7 @@
             e.preventDefault();
 
             if (!db || !isConfigured) {
-                showMessage('Firebase não configurado. Por favor, configure na aba "Configuração".', 'error');
-                showTab('config');
-                document.querySelector('.tab[onclick="showTab(\'config\')"]').classList.add('active');
+                showMessage('Erro: Firebase não está configurado. Por favor, recarregue a página.', 'error');
                 return;
             }
 
@@ -1417,6 +1371,13 @@
             const phoneRegex = /^\d{10,11}$/;
             if (!phoneRegex.test(telefone)) {
                 showMessage('Formato de telefone inválido. Use apenas números, incluindo o DDD (10 ou 11 dígitos).', 'error');
+                return;
+            }
+            
+            // Validação adicional para a regra de segunda-feira
+            const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
+            if (selectedDayOfWeek === 1 && servico !== 'Atendimento') {
+                showMessage('Na segunda-feira, apenas o serviço de "Atendimento" está disponível.', 'error');
                 return;
             }
 
@@ -1489,12 +1450,13 @@
         // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
         async function loadAgendamentos() {
             if (!db || !isConfigured) {
-                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Firebase não configurado. Vá para a aba "Configuração".</div>`;
+                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
                 return;
             }
-
+            
             const agendamentosList = document.getElementById('agendamentos-list');
             agendamentosList.innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
+            document.getElementById('search-input').value = '';
 
             try {
                 const snapshot = await db.collection('agendamentos')
@@ -1503,69 +1465,96 @@
 
                 if (snapshot.empty) {
                     agendamentosList.innerHTML = `<div class="loading">Nenhum agendamento encontrado.</div>`;
+                    allAppointments = [];
                     return;
                 }
                 
-                const agendamentosPorDia = {};
-                snapshot.forEach(doc => {
-                    const agendamento = { ...doc.data(), id: doc.id };
-                    const data = agendamento.data;
-                    if (!agendamentosPorDia[data]) {
-                        agendamentosPorDia[data] = [];
-                    }
-                    agendamentosPorDia[data].push(agendamento);
-                });
-
-                agendamentosList.innerHTML = '';
-                
-                const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => new Date(a) - new Date(b));
-                
-                datasOrdenadas.forEach(data => {
-                    const agendamentosDoDia = agendamentosPorDia[data];
-                    
-                    agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
-                    
-                    const diaContainer = document.createElement('div');
-                    diaContainer.classList.add('agendamentos-dia');
-                    
-                    let htmlDia = `
-                        <h3>
-                            <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
-                            <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">Baixar PDF</button>
-                        </h3>
-                    `;
-                    
-                    agendamentosDoDia.forEach(agendamento => {
-                        htmlDia += `
-                            <div class="agendamento-card">
-                                <div class="agendamento-header">
-                                    <span class="agendamento-cliente">${agendamento.cliente}</span>
-                                    <span class="agendamento-data">${agendamento.hora}</span>
-                                </div>
-                                <div class="agendamento-info">
-                                    <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}</div>
-                                    <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
-                                    <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
-                                </div>
-                                ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
-                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                    <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
-                                    ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
-                                    ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
-                                    <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    diaContainer.innerHTML = htmlDia;
-                    agendamentosList.appendChild(diaContainer);
-                });
+                const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                allAppointments = agendamentos; // Salva para uso na pesquisa
+                renderAgendamentos(agendamentos);
 
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
                 agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
             }
+        }
+        
+        // Função para renderizar os agendamentos na tela
+        function renderAgendamentos(agendamentosToRender) {
+            const agendamentosList = document.getElementById('agendamentos-list');
+            agendamentosList.innerHTML = '';
+            
+            if (agendamentosToRender.length === 0) {
+                agendamentosList.innerHTML = `<div class="loading">Nenhum agendamento encontrado.</div>`;
+                return;
+            }
+
+            const agendamentosPorDia = {};
+            agendamentosToRender.forEach(agendamento => {
+                const data = agendamento.data;
+                if (!agendamentosPorDia[data]) {
+                    agendamentosPorDia[data] = [];
+                }
+                agendamentosPorDia[data].push(agendamento);
+            });
+            
+            const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => new Date(a) - new Date(b));
+            
+            datasOrdenadas.forEach(data => {
+                const agendamentosDoDia = agendamentosPorDia[data];
+                agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
+                
+                const diaContainer = document.createElement('div');
+                diaContainer.classList.add('agendamentos-dia');
+                
+                let htmlDia = `
+                    <h3>
+                        <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
+                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">Baixar PDF</button>
+                    </h3>
+                `;
+                
+                agendamentosDoDia.forEach(agendamento => {
+                    htmlDia += `
+                        <div class="agendamento-card">
+                            <div class="agendamento-header">
+                                <span class="agendamento-cliente">${agendamento.cliente}</span>
+                                <span class="agendamento-data">${agendamento.hora}</span>
+                            </div>
+                            <div class="agendamento-info">
+                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}</div>
+                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
+                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
+                            </div>
+                            ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
+                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
+                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
+                                ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
+                                <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                diaContainer.innerHTML = htmlDia;
+                agendamentosList.appendChild(diaContainer);
+            });
+        }
+        
+        // Nova função para filtrar os agendamentos
+        function filterAgendamentos(query) {
+            const normalizedQuery = query.toLowerCase().trim();
+            if (normalizedQuery === '') {
+                renderAgendamentos(allAppointments);
+                return;
+            }
+            
+            const filteredAppointments = allAppointments.filter(agendamento => {
+                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
+            });
+            
+            renderAgendamentos(filteredAppointments);
         }
 
         // Função para cancelar agendamento
