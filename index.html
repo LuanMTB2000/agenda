@@ -795,7 +795,8 @@
         let selectedTime = null;
         let editAppointmentId = null;
         let editCalendarDate = new Date();
-
+        let currentCalendarDate = new Date();
+        
         // Constante global para a data/hora atual (usada para horários passados)
         const NOW_DATE_GLOBAL = new Date(); 
         NOW_DATE_GLOBAL.setSeconds(0, 0); // Zera segundos e milissegundos para precisão da meia hora
@@ -803,11 +804,11 @@
         // Horários de funcionamento
         const WORKING_HOURS = {
             start: '10:00',
-            end: '17:30',
+            end: '17:00',
             workingDays: [2, 3, 4, 5] // Terça(2) a Sexta(5)
         };
 
-        const MAX_APPOINTMENTS_PER_HOUR = 3;
+        const MAX_APPOINTMENTS_PER_HOUR = 4;
         
         // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15']; // Adicionado o feriado do dia 15/08/2025
@@ -1094,13 +1095,13 @@
                 todayDateOnly.setHours(0,0,0,0);
 
                 if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-                    let nextHalfHour = new Date(NOW_DATE_GLOBAL);
-                    nextHalfHour.setMinutes(Math.ceil(nextHalfHour.getMinutes() / 30) * 30, 0, 0);
+                    let nextHour = new Date(NOW_DATE_GLOBAL);
+                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
                     
-                    if (nextHalfHour < loopStartTime) {
+                    if (nextHour < loopStartTime) {
                         loopStartTime = new Date(loopStartTime);
                     } else {
-                        loopStartTime = new Date(nextHalfHour);
+                        loopStartTime = new Date(nextHour);
                     }
                 }
                 
@@ -1122,30 +1123,12 @@
                     
                     const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
 
-
                     let availabilityClass = '';
-                    let badgeContent = '';
 
                     if (isFull || isPastTime) {
                         availabilityClass = 'unavailable';
-                        if (isFull) {
-                            badgeContent = 'Cheio';
-                            availabilityClass += ' full';
-                        } else {
-                            badgeContent = 'Passado';
-                        }
-                    } else if (bookingsCount > 0) {
-                        const remainingSlots = MAX_APPOINTMENTS_PER_HOUR - bookingsCount;
-                        if (remainingSlots <= 1) {
-                            availabilityClass = 'low';
-                            badgeContent = `Poucas (${remainingSlots})`;
-                        } else {
-                            availabilityClass = 'available';
-                            badgeContent = `Vagas (${remainingSlots})`;
-                        }
                     } else {
                         availabilityClass = 'available';
-                        badgeContent = `Vagas (${MAX_APPOINTMENTS_PER_HOUR})`;
                     }
 
                     availableSlots.push({
@@ -1153,10 +1136,9 @@
                         isFull,
                         isPastTime,
                         availabilityClass,
-                        badgeContent
                     });
 
-                    currentTimeSlot.setMinutes(currentTimeSlot.getMinutes() + 30);
+                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
                 }
 
                 timeSlotsDiv.innerHTML = '';
@@ -1176,7 +1158,7 @@
 
                     if (!slot.isFull && !slot.isPastTime) {
                         slotElement.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                            document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
                             slotElement.classList.add('selected');
                             selectedTime = slot.time;
                         });
@@ -1316,12 +1298,12 @@
                 todayDateOnly.setHours(0,0,0,0);
 
                 if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-                    let nextHalfHour = new Date(NOW_DATE_GLOBAL);
-                    nextHalfHour.setMinutes(Math.ceil(nextHalfHour.getMinutes() / 30) * 30, 0, 0);
-                    if (nextHalfHour < loopStartTime) {
+                    let nextHour = new Date(NOW_DATE_GLOBAL);
+                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+                    if (nextHour < loopStartTime) {
                         loopStartTime = new Date(loopStartTime);
                     } else {
-                        loopStartTime = new Date(nextHalfHour);
+                        loopStartTime = new Date(nextHour);
                     }
                 }
                 
@@ -1343,7 +1325,7 @@
                         isPastTime,
                         isSelected: time === selectedTime,
                     });
-                    currentTimeSlot.setMinutes(currentTimeSlot.getMinutes() + 30);
+                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
                 }
 
                 timeSlotsDiv.innerHTML = '';
@@ -1403,168 +1385,6 @@
                 console.error("Erro ao salvar alterações:", error);
                 showMessage(`Erro ao salvar: ${error.message}`, 'error', 'edit-message-area');
             }
-        }
-
-        // Função para carregar horários disponíveis na tela de Novo Agendamento
-        async function loadTimeSlots(dateString) {
-            if (!db) {
-                document.getElementById('timeSlots').innerHTML = `<div class="error">Firebase não configurado. Vá para a aba "Configuração".</div>`;
-                return;
-            }
-            
-            if (HOLIDAYS.includes(dateString)) {
-                document.getElementById('timeSlots').innerHTML = `<div class="loading">Não há expediente neste feriado.</div>`;
-                return;
-            }
-
-            const timeSlotsDiv = document.getElementById('timeSlots');
-            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários para ${formatDate(dateString)}...</div>`;
-
-            try {
-                const appointmentsRef = db.collection('agendamentos');
-                
-                const snapshot = await appointmentsRef
-                    .where('data', '==', dateString)
-                    .get();
-                
-                const existingAppointments = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status !== 'cancelado') { 
-                        if (existingAppointments[data.hora]) {
-                            existingAppointments[data.hora]++;
-                        } else {
-                            existingAppointments[data.hora] = 1;
-                        }
-                    }
-                });
-
-                // Lógica para definir o horário de início e fim.
-                let startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
-                let startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-                
-                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
-                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
-
-                let loopStartTime = new Date(dateString + 'T12:00:00');
-                loopStartTime.setHours(startHour, startMinute, 0, 0);
-
-                const endTime = new Date(dateString + 'T12:00:00');
-                endTime.setHours(endHour, endMinute, 0, 0);
-
-                const selectedDayDateOnly = new Date(dateString);
-                selectedDayDateOnly.setHours(0,0,0,0);
-
-                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
-                todayDateOnly.setHours(0,0,0,0);
-
-                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-                    let nextHalfHour = new Date(NOW_DATE_GLOBAL);
-                    nextHalfHour.setMinutes(Math.ceil(nextHalfHour.getMinutes() / 30) * 30, 0, 0);
-                    
-                    if (nextHalfHour < loopStartTime) {
-                        loopStartTime = new Date(loopStartTime);
-                    } else {
-                        loopStartTime = new Date(nextHalfHour);
-                    }
-                }
-                
-                const availableSlots = [];
-                let currentTimeSlot = new Date(loopStartTime);
-
-                if (currentTimeSlot > endTime) {
-                    timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
-                    return;
-                }
-                
-                while (currentTimeSlot <= endTime) {
-                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
-                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
-                    const time = `${slotHour}:${slotMinute}`;
-                    
-                    const bookingsCount = existingAppointments[time] || 0;
-                    const isFull = bookingsCount >= MAX_APPOINTMENTS_PER_HOUR;
-                    
-                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
-
-
-                    let availabilityClass = '';
-                    let badgeContent = '';
-
-                    if (isFull || isPastTime) {
-                        availabilityClass = 'unavailable';
-                        if (isFull) {
-                            badgeContent = 'Cheio';
-                            availabilityClass += ' full';
-                        } else {
-                            badgeContent = 'Passado';
-                        }
-                    } else if (bookingsCount > 0) {
-                        const remainingSlots = MAX_APPOINTMENTS_PER_HOUR - bookingsCount;
-                        if (remainingSlots <= 1) {
-                            availabilityClass = 'low';
-                            badgeContent = `Poucas (${remainingSlots})`;
-                        } else {
-                            availabilityClass = 'available';
-                            badgeContent = `Vagas (${remainingSlots})`;
-                        }
-                    } else {
-                        availabilityClass = 'available';
-                        badgeContent = `Vagas (${MAX_APPOINTMENTS_PER_HOUR})`;
-                    }
-
-                    availableSlots.push({
-                        time,
-                        isFull,
-                        isPastTime,
-                        availabilityClass,
-                        badgeContent
-                    });
-
-                    currentTimeSlot.setMinutes(currentTimeSlot.getMinutes() + 30);
-                }
-
-                timeSlotsDiv.innerHTML = '';
-                if (availableSlots.length === 0) {
-                    timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
-                    return;
-                }
-
-                availableSlots.forEach(slot => {
-                    const slotElement = document.createElement('div');
-                    slotElement.classList.add('time-slot');
-                    slotElement.textContent = slot.time;
-                    
-                    if (slot.availabilityClass) {
-                        slotElement.classList.add(slot.availabilityClass);
-                    }
-
-                    if (!slot.isFull && !slot.isPastTime) {
-                        slotElement.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
-                            slotElement.classList.add('selected');
-                            selectedTime = slot.time;
-                        });
-                    }
-                    timeSlotsDiv.appendChild(slotElement);
-                });
-
-            } catch (error) {
-                console.error("Erro ao carregar horários:", error);
-                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
-            }
-        }
-
-        // Função para formatar data (opcional, para exibição)
-        function formatDate(dateString) {
-            const [year, month, day] = dateString.split('-');
-            return `${day}/${month}/${year}`;
-        }
-        
-        // Função para formatar hora (para ordenação)
-        function formatTime(timeString) {
-            const [hours, minutes] = timeString.split(':');
-            return parseInt(hours) * 60 + parseInt(minutes);
         }
 
         // Enviar formulário de agendamento
