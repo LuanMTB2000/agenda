@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MrJack - Sistema de Agendamentos</title>
     <style>
-        /* Estilos CSS */
+        /* Estilos CSS (inalterados do seu código original) */
         * {
             margin: 0;
             padding: 0;
@@ -832,8 +832,8 @@
                 loadAgendamentos();
             } else if (tabName === 'novo') {
                 // Ao mostrar a aba 'novo', sempre reinicializa a data do calendário para hoje
-                editCalendarDate = new Date(); 
-                generateDaySelector();
+                currentCalendarDate = new Date(); 
+                generateDaySelector(); // Garante que o calendário seja gerado e um dia selecionado
             }
         }
 
@@ -942,18 +942,17 @@
         });
 
         // Função para mostrar mensagens
-        function showMessage(message, type = 'success') {
-            const messageArea = document.getElementById('message-area');
+        function showMessage(message, type = 'success', targetElement = 'message-area') {
+            const messageArea = document.getElementById(targetElement);
             messageArea.innerHTML = `<div class="${type}">${message}</div>`;
             
             setTimeout(() => {
                 messageArea.innerHTML = '';
             }, 5000);
         }
-
-        // Novas funções para navegação de mês e geração de dias
+        
         const TODAY_DATE = new Date();
-        TODAY_DATE.setHours(0, 0, 0, 0); // Zera hora para comparação de dia (apenas data)
+        TODAY_DATE.setHours(0, 0, 0, 0);
 
         function changeMonth(delta) {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
@@ -961,20 +960,17 @@
             const fiveYearsFromNow = new Date(TODAY_DATE);
             fiveYearsFromNow.setFullYear(TODAY_DATE.getFullYear() + 5);
 
-            // Impedir navegar para meses ANTES do mês atual
             if (currentCalendarDate.getFullYear() < TODAY_DATE.getFullYear() ||
                 (currentCalendarDate.getFullYear() === TODAY_DATE.getFullYear() && currentCalendarDate.getMonth() < TODAY_DATE.getMonth())) {
                 
-                currentCalendarDate = new Date(TODAY_DATE.getFullYear(), TODAY_DATE.getMonth(), 1); // Volta para o primeiro dia do mês atual
+                currentCalendarDate = new Date(TODAY_DATE.getFullYear(), TODAY_DATE.getMonth(), 1);
             }
             
-            // Impedir navegar para meses MAIS de 5 anos no futuro
             if (currentCalendarDate > fiveYearsFromNow) {
                 currentCalendarDate = fiveYearsFromNow;
-                currentCalendarDate.setDate(1); // Garante que é o primeiro dia do mês limite
+                currentCalendarDate.setDate(1);
             }
 
-            // Ao mudar o mês, resetar o dia selecionado para que o primeiro dia disponível do novo mês seja selecionado
             selectedDate = null; 
             generateDaySelector(); 
         }
@@ -988,68 +984,58 @@
             const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
             const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-            // Define o texto do mês e ano atual
             currentMonthYearSpan.textContent = `${monthNames[currentCalendarDate.getMonth()]} de ${currentCalendarDate.getFullYear()}`;
 
             const lastDayOfMonth = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0);
 
-            let firstDayFound = false; // Flag para selecionar o primeiro dia disponível
+            let firstDayFound = false;
 
             for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
                 const date = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), i);
                 const dayOfWeek = date.getDay();
 
-                // Para comparar apenas a data, zera as horas
                 const dateOnly = new Date(date);
                 dateOnly.setHours(0,0,0,0);
                 
-                // Pula a data se for feriado
                 const dateString = date.toISOString().split('T')[0];
                 if (HOLIDAYS.includes(dateString)) {
                     continue;
                 }
                 
-                // Só exibe o botão se for um dia de funcionamento E não for um dia já passado do mês atual
                 if (WORKING_HOURS.workingDays.includes(dayOfWeek) && dateOnly >= TODAY_DATE) {
                     const dayBtn = document.createElement('button');
                     dayBtn.classList.add('day-btn');
                     dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
-                    dayBtn.dataset.date = dateString; // Usa a variável criada
+                    dayBtn.dataset.date = dateString;
                     dayBtn.addEventListener('click', () => {
                         document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
                         dayBtn.classList.add('active');
                         selectedDate = dayBtn.dataset.date;
-                        selectedTime = null; // Resetar horário selecionado ao mudar o dia
-                        loadTimeSlots(selectedDate); // CHAMADA CRÍTICA AQUI
+                        selectedTime = null;
+                        loadTimeSlots(selectedDate);
                     });
                     daySelector.appendChild(dayBtn);
 
-                    // Se ainda não selecionou um dia e este é o primeiro disponível, selecione-o
                     if (!firstDayFound && !selectedDate) {
-                        selectedDate = dayBtn.dataset.date; // Marca como selecionado
-                        firstDayFound = true; // Garante que só o primeiro seja marcado
+                        selectedDate = dayBtn.dataset.date;
+                        firstDayFound = true;
                     }
                 }
             }
 
-            // Após gerar todos os botões, verifica o que foi selecionado ou se precisa de seleção
             if (selectedDate) {
-                // Tenta ativar o botão que corresponde ao selectedDate
                 const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
                 if (activeBtn) {
                     activeBtn.classList.add('active');
-                    loadTimeSlots(selectedDate); // Carrega horários para o dia ativo
+                    loadTimeSlots(selectedDate);
                 } else if (firstDayFound) {
-                    // Se o selectedDate não está visível (ex: mudou de mês), mas um novo primeiro dia foi encontrado
-                    daySelector.querySelector(`[data-date="${selectedDate}"]`).classList.add('active'); // Ativa o que foi definido como primeiro
-                    loadTimeSlots(selectedDate); // Carrega horários para ele
+                    daySelector.querySelector(`[data-date="${selectedDate}"]`).classList.add('active');
+                    loadTimeSlots(selectedDate);
                 } else {
-                    // Nenhum dia disponível no mês atual ou para frente
                     document.getElementById('timeSlots').innerHTML = `<div class="loading">Nenhum dia disponível para agendamento neste mês.</div>`;
-                    selectedDate = null; // Resetar se não houver dia selecionável
+                    selectedDate = null;
                 }
             } else {
-                // Se nenhum dia foi selecionado (ex: carregamento inicial e não há dias), limpa e mostra mensagem
                 document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
             }
         }
@@ -1062,7 +1048,6 @@
                 return;
             }
             
-            // Se for feriado, não carrega os horários
             if (HOLIDAYS.includes(dateString)) {
                 document.getElementById('timeSlots').innerHTML = `<div class="loading">Não há expediente neste feriado.</div>`;
                 return;
@@ -1074,7 +1059,6 @@
             try {
                 const appointmentsRef = db.collection('agendamentos');
                 
-                // Buscar agendamentos para a data selecionada
                 const snapshot = await appointmentsRef
                     .where('data', '==', dateString)
                     .get();
@@ -1082,7 +1066,6 @@
                 const existingAppointments = {};
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // Contar apenas agendamentos que não foram cancelados
                     if (data.status !== 'cancelado') { 
                         if (existingAppointments[data.hora]) {
                             existingAppointments[data.hora]++;
@@ -1092,16 +1075,8 @@
                     }
                 });
 
-                // Lógica para definir o horário de início com base no dia da semana
-                const selectedDay = new Date(dateString + 'T12:00:00').getDay();
-                let startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
-                let startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-                
-                // Remove a lógica de horário especial para terça-feira
-                // if (selectedDay === 2) {
-                //     startHour = 14;
-                //     startMinute = 0;
-                // }
+                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
                 
                 const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
                 const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
@@ -1112,7 +1087,6 @@
                 const endTime = new Date(dateString + 'T12:00:00');
                 endTime.setHours(endHour, endMinute, 0, 0);
 
-                // Se o dia selecionado for HOJE, ajusta o horário de início para a próxima meia hora válida
                 const selectedDayDateOnly = new Date(dateString);
                 selectedDayDateOnly.setHours(0,0,0,0);
 
@@ -1133,7 +1107,6 @@
                 const availableSlots = [];
                 let currentTimeSlot = new Date(loopStartTime);
 
-                // IMPORTANTE: Aqui está a lógica que bloqueia horários já passados ou lotados
                 if (currentTimeSlot > endTime) {
                     timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
                     return;
@@ -1153,7 +1126,6 @@
                     let availabilityClass = '';
                     let badgeContent = '';
 
-                    // Lógica que define a classe de disponibilidade
                     if (isFull || isPastTime) {
                         availabilityClass = 'unavailable';
                         if (isFull) {
@@ -1205,6 +1177,371 @@
                     if (!slot.isFull && !slot.isPastTime) {
                         slotElement.addEventListener('click', () => {
                             document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                            slotElement.classList.add('selected');
+                            selectedTime = slot.time;
+                        });
+                    }
+                    timeSlotsDiv.appendChild(slotElement);
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar horários:", error);
+                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
+            }
+        }
+
+        // Função para formatar data (opcional, para exibição)
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+        
+        // Função para formatar hora (para ordenação)
+        function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            return parseInt(hours) * 60 + parseInt(minutes);
+        }
+        
+        // Função para abrir a modal de edição de agendamento
+        async function openEditModal(id) {
+            editAppointmentId = id;
+            document.getElementById('edit-modal').style.display = 'flex';
+            
+            const appointmentRef = db.collection('agendamentos').doc(id);
+            const doc = await appointmentRef.get();
+            const agendamento = doc.data();
+
+            document.getElementById('edit-agendamento-details').innerHTML = `
+                <p><strong>Cliente:</strong> ${agendamento.cliente}</p>
+                <p><strong>Atendente:</strong> ${agendamento.funcionario}</p>
+                <p><strong>Serviço:</strong> ${agendamento.servico}</p>
+                <p><strong>Agendamento atual:</strong> ${formatDate(agendamento.data)} às ${agendamento.hora}</p>
+            `;
+            
+            // Inicializa o calendário da modal com a data do agendamento
+            editCalendarDate = new Date(agendamento.data + 'T12:00:00');
+            selectedDate = agendamento.data;
+            selectedTime = agendamento.hora;
+            generateEditDaySelector();
+        }
+
+        // Funções de navegação do calendário da modal de edição
+        function changeEditMonth(delta) {
+            editCalendarDate.setMonth(editCalendarDate.getMonth() + delta);
+            generateEditDaySelector();
+        }
+
+        function generateEditDaySelector() {
+            const daySelector = document.getElementById('editDaySelector');
+            const monthYearSpan = document.getElementById('editCurrentMonthYear');
+            daySelector.innerHTML = '';
+
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            monthYearSpan.textContent = `${monthNames[editCalendarDate.getMonth()]} de ${editCalendarDate.getFullYear()}`;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const lastDayOfMonth = new Date(editCalendarDate.getFullYear(), editCalendarDate.getMonth() + 1, 0);
+
+            for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+                const date = new Date(editCalendarDate.getFullYear(), editCalendarDate.getMonth(), i);
+                const dayOfWeek = date.getDay();
+
+                const dateOnly = new Date(date);
+                dateOnly.setHours(0,0,0,0);
+                const dateString = date.toISOString().split('T')[0];
+
+                if (WORKING_HOURS.workingDays.includes(dayOfWeek) && dateOnly >= TODAY_DATE && !HOLIDAYS.includes(dateString)) {
+                    const dayBtn = document.createElement('button');
+                    dayBtn.classList.add('day-btn');
+                    dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
+                    dayBtn.dataset.date = dateString;
+                    
+                    if (dateString === selectedDate) {
+                        dayBtn.classList.add('active');
+                    }
+
+                    dayBtn.addEventListener('click', () => {
+                        document.querySelectorAll('#editDaySelector .day-btn').forEach(btn => btn.classList.remove('active'));
+                        dayBtn.classList.add('active');
+                        selectedDate = dayBtn.dataset.date;
+                        selectedTime = null;
+                        loadEditTimeSlots(selectedDate);
+                    });
+                    daySelector.appendChild(dayBtn);
+                }
+            }
+
+            if (selectedDate) {
+                loadEditTimeSlots(selectedDate);
+            } else {
+                document.getElementById('editTimeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
+            }
+        }
+        
+        async function loadEditTimeSlots(dateString) {
+            const timeSlotsDiv = document.getElementById('editTimeSlots');
+            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários...</div>`;
+
+            try {
+                const appointmentsRef = db.collection('agendamentos');
+                const snapshot = await appointmentsRef.where('data', '==', dateString).get();
+                
+                const existingAppointments = {};
+                snapshot.forEach(doc => {
+                    if (doc.id !== editAppointmentId && doc.data().status !== 'cancelado') {
+                        const data = doc.data();
+                        if (existingAppointments[data.hora]) {
+                            existingAppointments[data.hora]++;
+                        } else {
+                            existingAppointments[data.hora] = 1;
+                        }
+                    }
+                });
+
+                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
+                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
+                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
+
+                let loopStartTime = new Date(dateString + 'T12:00:00');
+                loopStartTime.setHours(startHour, startMinute, 0, 0);
+                const endTime = new Date(dateString + 'T12:00:00');
+                endTime.setHours(endHour, endMinute, 0, 0);
+
+                const selectedDayDateOnly = new Date(dateString);
+                selectedDayDateOnly.setHours(0,0,0,0);
+                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
+                todayDateOnly.setHours(0,0,0,0);
+
+                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
+                    let nextHalfHour = new Date(NOW_DATE_GLOBAL);
+                    nextHalfHour.setMinutes(Math.ceil(nextHalfHour.getMinutes() / 30) * 30, 0, 0);
+                    if (nextHalfHour < loopStartTime) {
+                        loopStartTime = new Date(loopStartTime);
+                    } else {
+                        loopStartTime = new Date(nextHalfHour);
+                    }
+                }
+                
+                const availableSlots = [];
+                let currentTimeSlot = new Date(loopStartTime);
+                
+                while (currentTimeSlot <= endTime) {
+                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
+                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
+                    const time = `${slotHour}:${slotMinute}`;
+                    
+                    const bookingsCount = existingAppointments[time] || 0;
+                    const isFull = bookingsCount >= MAX_APPOINTMENTS_PER_HOUR;
+                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
+
+                    availableSlots.push({
+                        time,
+                        isFull,
+                        isPastTime,
+                        isSelected: time === selectedTime,
+                    });
+                    currentTimeSlot.setMinutes(currentTimeSlot.getMinutes() + 30);
+                }
+
+                timeSlotsDiv.innerHTML = '';
+                availableSlots.forEach(slot => {
+                    const slotElement = document.createElement('div');
+                    slotElement.classList.add('time-slot');
+                    slotElement.textContent = slot.time;
+                    
+                    if (slot.isFull || slot.isPastTime) {
+                        slotElement.classList.add('unavailable');
+                    }
+                    if (slot.isSelected) {
+                        slotElement.classList.add('selected');
+                    }
+
+                    if (!slot.isFull && !slot.isPastTime) {
+                        slotElement.addEventListener('click', () => {
+                            document.querySelectorAll('#editTimeSlots .time-slot').forEach(s => s.classList.remove('selected'));
+                            slotElement.classList.add('selected');
+                            selectedTime = slot.time;
+                        });
+                    }
+                    timeSlotsDiv.appendChild(slotElement);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar horários para edição:", error);
+                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
+            }
+        }
+        
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            editAppointmentId = null;
+            selectedDate = null;
+            selectedTime = null;
+            loadAgendamentos();
+        }
+
+        async function saveEditedAppointment() {
+            if (!selectedDate || !selectedTime) {
+                showMessage('Por favor, selecione uma nova data e horário.', 'error', 'edit-message-area');
+                return;
+            }
+
+            try {
+                const docRef = db.collection('agendamentos').doc(editAppointmentId);
+                await docRef.update({
+                    data: selectedDate,
+                    hora: selectedTime,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() // Opcional: atualizar o timestamp para o topo da lista
+                });
+
+                showMessage('Agendamento alterado com sucesso!', 'success', 'edit-message-area');
+                closeEditModal();
+                loadAgendamentos();
+            } catch (error) {
+                console.error("Erro ao salvar alterações:", error);
+                showMessage(`Erro ao salvar: ${error.message}`, 'error', 'edit-message-area');
+            }
+        }
+
+        // Função para carregar horários disponíveis na tela de Novo Agendamento
+        async function loadTimeSlots(dateString) {
+            if (!db) {
+                document.getElementById('timeSlots').innerHTML = `<div class="error">Firebase não configurado. Vá para a aba "Configuração".</div>`;
+                return;
+            }
+            
+            if (HOLIDAYS.includes(dateString)) {
+                document.getElementById('timeSlots').innerHTML = `<div class="loading">Não há expediente neste feriado.</div>`;
+                return;
+            }
+
+            const timeSlotsDiv = document.getElementById('timeSlots');
+            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários para ${formatDate(dateString)}...</div>`;
+
+            try {
+                const appointmentsRef = db.collection('agendamentos');
+                
+                const snapshot = await appointmentsRef
+                    .where('data', '==', dateString)
+                    .get();
+                
+                const existingAppointments = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.status !== 'cancelado') { 
+                        if (existingAppointments[data.hora]) {
+                            existingAppointments[data.hora]++;
+                        } else {
+                            existingAppointments[data.hora] = 1;
+                        }
+                    }
+                });
+
+                // Lógica para definir o horário de início e fim.
+                let startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                let startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
+                
+                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
+                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
+
+                let loopStartTime = new Date(dateString + 'T12:00:00');
+                loopStartTime.setHours(startHour, startMinute, 0, 0);
+
+                const endTime = new Date(dateString + 'T12:00:00');
+                endTime.setHours(endHour, endMinute, 0, 0);
+
+                const selectedDayDateOnly = new Date(dateString);
+                selectedDayDateOnly.setHours(0,0,0,0);
+
+                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
+                todayDateOnly.setHours(0,0,0,0);
+
+                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
+                    let nextHalfHour = new Date(NOW_DATE_GLOBAL);
+                    nextHalfHour.setMinutes(Math.ceil(nextHalfHour.getMinutes() / 30) * 30, 0, 0);
+                    
+                    if (nextHalfHour < loopStartTime) {
+                        loopStartTime = new Date(loopStartTime);
+                    } else {
+                        loopStartTime = new Date(nextHalfHour);
+                    }
+                }
+                
+                const availableSlots = [];
+                let currentTimeSlot = new Date(loopStartTime);
+
+                if (currentTimeSlot > endTime) {
+                    timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
+                    return;
+                }
+                
+                while (currentTimeSlot <= endTime) {
+                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
+                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
+                    const time = `${slotHour}:${slotMinute}`;
+                    
+                    const bookingsCount = existingAppointments[time] || 0;
+                    const isFull = bookingsCount >= MAX_APPOINTMENTS_PER_HOUR;
+                    
+                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
+
+
+                    let availabilityClass = '';
+                    let badgeContent = '';
+
+                    if (isFull || isPastTime) {
+                        availabilityClass = 'unavailable';
+                        if (isFull) {
+                            badgeContent = 'Cheio';
+                            availabilityClass += ' full';
+                        } else {
+                            badgeContent = 'Passado';
+                        }
+                    } else if (bookingsCount > 0) {
+                        const remainingSlots = MAX_APPOINTMENTS_PER_HOUR - bookingsCount;
+                        if (remainingSlots <= 1) {
+                            availabilityClass = 'low';
+                            badgeContent = `Poucas (${remainingSlots})`;
+                        } else {
+                            availabilityClass = 'available';
+                            badgeContent = `Vagas (${remainingSlots})`;
+                        }
+                    } else {
+                        availabilityClass = 'available';
+                        badgeContent = `Vagas (${MAX_APPOINTMENTS_PER_HOUR})`;
+                    }
+
+                    availableSlots.push({
+                        time,
+                        isFull,
+                        isPastTime,
+                        availabilityClass,
+                        badgeContent
+                    });
+
+                    currentTimeSlot.setMinutes(currentTimeSlot.getMinutes() + 30);
+                }
+
+                timeSlotsDiv.innerHTML = '';
+                if (availableSlots.length === 0) {
+                    timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
+                    return;
+                }
+
+                availableSlots.forEach(slot => {
+                    const slotElement = document.createElement('div');
+                    slotElement.classList.add('time-slot');
+                    slotElement.textContent = slot.time;
+                    
+                    if (slot.availabilityClass) {
+                        slotElement.classList.add(slot.availabilityClass);
+                    }
+
+                    if (!slot.isFull && !slot.isPastTime) {
+                        slotElement.addEventListener('click', () => {
+                            document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
                             slotElement.classList.add('selected');
                             selectedTime = slot.time;
                         });
@@ -1395,6 +1732,7 @@
                                     <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
                                     ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
                                     ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
+                                    <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
                                 </div>
                             </div>
                         `;
