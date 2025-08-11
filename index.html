@@ -153,7 +153,6 @@
             gap: 10px;
         }
 
-        /* Estilos para o novo layout do h2 na aba de lista */
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -712,6 +711,7 @@
                                     <option value="Renato">Renato</option>
                                     <option value="Carol">Carol</option>
                                     <option value="Augusto">Augusto</option>
+                                    <option value="Mateus">Mateus</option>
                                 </select>
                             </div>
 
@@ -720,6 +720,8 @@
                                 <select id="servico" required>
                                     <option value="">Selecione o serviço</option>
                                     <option value="Atendimento">Atendimento</option>
+                                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
+                                    <option value="Retirada Vestido">Retirada Vestido</option>
                                     <option value="Prova">Prova</option>
                                 </select>
                             </div>
@@ -817,10 +819,11 @@
         const WORKING_HOURS = {
             start: '10:00',
             end: '17:00',
-            workingDays: [1, 2, 3, 4, 5] // Adicionado segunda-feira (1)
+            workingDays: [1, 2, 3, 4, 5, 6] // Adicionado segunda-feira (1) e sábado (6)
         };
         
         const MAX_APPOINTMENTS_PER_HOUR = 4;
+        const MAX_APPOINTMENTS_SATURDAY = 1; // Limite de 1 para o sábado
         
         // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15']; // Adicionado o feriado do dia 15/08/2025
@@ -938,7 +941,7 @@
                     dayBtn.classList.add('day-btn');
                     dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
                     dayBtn.dataset.date = dateString;
-                    dayBtn.dataset.dayOfWeek = dayOfWeek; // Armazena o dia da semana
+                    dayBtn.dataset.dayOfWeek = dayOfWeek;
 
                     dayBtn.addEventListener('click', () => {
                         document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
@@ -957,7 +960,7 @@
                     }
                 }
             }
-            
+
             if (selectedDate) {
                 const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
                 if (activeBtn) {
@@ -993,9 +996,11 @@
                 servicoSelect.innerHTML += `
                     <option value="Atendimento">Atendimento</option>
                     <option value="Prova">Prova</option>
+                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
+                    <option value="Retirada Vestido">Retirada Vestido</option>
                 `;
             }
-            servicoSelect.selectedIndex = 0; // Resetar para a primeira opção
+            servicoSelect.selectedIndex = 0;
         }
 
         // Função para carregar horários disponíveis
@@ -1075,8 +1080,12 @@
                     const time = `${slotHour}:${slotMinute}`;
                     
                     const bookingsCount = existingAppointments[time] || 0;
-                    const isFull = bookingsCount >= MAX_APPOINTMENTS_PER_HOUR;
                     
+                    // Lógica para definir o limite de agendamentos por horário
+                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
+                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+                    const isFull = bookingsCount >= currentMaxAppointments;
+
                     const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
 
                     let availabilityClass = '';
@@ -1272,7 +1281,11 @@
                     const time = `${slotHour}:${slotMinute}`;
                     
                     const bookingsCount = existingAppointments[time] || 0;
-                    const isFull = bookingsCount >= MAX_APPOINTMENTS_PER_HOUR;
+                    
+                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
+                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+                    const isFull = bookingsCount >= currentMaxAppointments;
+
                     const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
 
                     availableSlots.push({
@@ -1331,7 +1344,7 @@
                 await docRef.update({
                     data: selectedDate,
                     hora: selectedTime,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp() // Opcional: atualizar o timestamp para o topo da lista
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
                 showMessage('Agendamento alterado com sucesso!', 'success', 'edit-message-area');
@@ -1374,7 +1387,6 @@
                 return;
             }
             
-            // Validação adicional para a regra de segunda-feira
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
             if (selectedDayOfWeek === 1 && servico !== 'Atendimento') {
                 showMessage('Na segunda-feira, apenas o serviço de "Atendimento" está disponível.', 'error');
@@ -1389,7 +1401,10 @@
                     .where('status', '!=', 'cancelado')
                     .get();
 
-                if (snapshot.docs.length >= MAX_APPOINTMENTS_PER_HOUR) {
+                const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
+                const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+
+                if (snapshot.docs.length >= currentMaxAppointments) {
                     showMessage('Este horário não está mais disponível. Por favor, selecione outro.', 'error');
                     await loadTimeSlots(selectedDate);
                     return;
@@ -1470,7 +1485,7 @@
                 }
                 
                 const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                allAppointments = agendamentos; // Salva para uso na pesquisa
+                allAppointments = agendamentos; // Armazenará todos os agendamentos para a pesquisa
                 renderAgendamentos(agendamentos);
 
             } catch (error) {
