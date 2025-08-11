@@ -418,6 +418,16 @@
             color: #1e293b;
             margin-bottom: 20px;
         }
+
+        .agendamentos-dia h3 .trajes-count {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -827,6 +837,9 @@
         
         // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15']; // Adicionado o feriado do dia 15/08/2025
+        
+        // Tipos de serviço que contam como "trajes"
+        const DRESS_SERVICES = ['Prova', 'Primeira Prova Vestido', 'Retirada Vestido'];
 
         // Funções do Firebase
         const FIREBASE_CONFIG = {
@@ -1436,18 +1449,19 @@
         });
 
         // FUNÇÃO QUE GERA E BAIXA O PDF DOS AGENDAMENTOS DE UM DIA
-        function downloadPDF(date, appointments) {
+        function downloadPDF(date, appointments, trajesCount) {
             if (!window.jspdf) {
                 alert('A biblioteca jsPDF não foi carregada. Tente recarregar a página.');
                 return;
             }
             
             const doc = new window.jspdf.jsPDF();
-            doc.setFontSize(22);
+            doc.setFontSize(18);
             doc.text(`Agendamentos do Dia: ${formatDate(date)}`, 15, 20);
-            
             doc.setFontSize(14);
-            let y = 30;
+            doc.text(`Trajes: ${trajesCount}`, 15, 30);
+            
+            let y = 40;
 
             appointments.forEach(agendamento => {
                 if (y > 280) {
@@ -1455,7 +1469,12 @@
                     y = 20;
                 }
 
-                doc.text(`- ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
+                doc.setFontSize(12);
+                doc.text(`- Cliente: ${agendamento.cliente}`, 15, y);
+                y += 7;
+                doc.text(`  Serviço: ${agendamento.servico}`, 15, y);
+                y += 7;
+                doc.text(`  Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1519,13 +1538,16 @@
                 const agendamentosDoDia = agendamentosPorDia[data];
                 agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
                 
+                const trajesCount = agendamentosDoDia.filter(a => DRESS_SERVICES.includes(a.servico)).length;
+
                 const diaContainer = document.createElement('div');
                 diaContainer.classList.add('agendamentos-dia');
                 
                 let htmlDia = `
                     <h3>
                         <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
-                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">Baixar PDF</button>
+                        <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
+                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
                     </h3>
                 `;
                 
