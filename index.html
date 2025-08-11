@@ -721,9 +721,9 @@
                                 <select id="servico" required>
                                     <option value="">Selecione o serviço</option>
                                     <option value="Atendimento">Atendimento</option>
-                                    <option value="Prova">Prova</option>
                                     <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
                                     <option value="Retirada Vestido">Retirada Vestido</option>
+                                    <option value="Prova">Prova</option>
                                 </select>
                             </div>
 
@@ -770,7 +770,7 @@
                         <h2>📋 Lista de Agendamentos</h2>
                         <div class="search-container">
                             <input type="text" id="search-input" placeholder="Pesquisar por cliente..." oninput="filterAgendamentos(this.value)">
-                            <svg xmlns="http://www.w3.org/2d00/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </div>
                     </div>
                     <div id="agendamentos-list">
@@ -1542,7 +1542,10 @@
                     <h3>
                         <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
-                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                        <div class="btn-group">
+                          <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                          <button class="btn-download-pdf" onclick="downloadAgendaPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">Download PDF Agenda</button>
+                        </div>
                     </h3>
                 `;
                 
