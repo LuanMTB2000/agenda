@@ -721,9 +721,9 @@
                                 <select id="servico" required>
                                     <option value="">Selecione o serviço</option>
                                     <option value="Atendimento">Atendimento</option>
+                                    <option value="Prova">Prova</option>
                                     <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
                                     <option value="Retirada Vestido">Retirada Vestido</option>
-                                    <option value="Prova">Prova</option>
                                 </select>
                             </div>
 
@@ -770,7 +770,7 @@
                         <h2>📋 Lista de Agendamentos</h2>
                         <div class="search-container">
                             <input type="text" id="search-input" placeholder="Pesquisar por cliente..." oninput="filterAgendamentos(this.value)">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <svg xmlns="http://www.w3.org/2d00/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </div>
                     </div>
                     <div id="agendamentos-list">
@@ -825,14 +825,14 @@
         const WORKING_HOURS = {
             start: '10:00',
             end: '17:00',
-            workingDays: [1, 2, 3, 4, 5, 6] // Adicionado segunda-feira (1) e sábado (6)
+            workingDays: [1, 2, 3, 4, 5, 6]
         };
         
         const MAX_APPOINTMENTS_PER_HOUR = 4;
-        const MAX_APPOINTMENTS_SATURDAY = 1; // Limite de 1 para o sábado
+        const MAX_APPOINTMENTS_SATURDAY = 1; 
         
         // Feriados a serem removidos
-        const HOLIDAYS = ['2025-08-15']; // Adicionado o feriado do dia 15/08/2025
+        const HOLIDAYS = ['2025-08-15'];
         
         // Tipos de serviço que contam como "trajes"
         const DRESS_SERVICES = ['Prova', 'Primeira Prova Vestido', 'Retirada Vestido'];
@@ -882,6 +882,7 @@
             initFirebase();
             showTab('novo'); 
             document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
+            document.getElementById('servico').addEventListener('change', toggleEmailField);
         });
 
         // Função para mostrar mensagens
@@ -1001,6 +1002,7 @@
 
             if (isMonday) {
                 servicoSelect.innerHTML += `<option value="Atendimento">Atendimento</option>`;
+                
             } else {
                 servicoSelect.innerHTML += `
                     <option value="Atendimento">Atendimento</option>
@@ -1009,7 +1011,6 @@
                     <option value="Retirada Vestido">Retirada Vestido</option>
                 `;
             }
-            // Tenta manter a opção selecionada, se ela ainda existir
             if (servico) {
                 const option = servicoSelect.querySelector(`option[value="${servico}"]`);
                 if (option) {
@@ -1456,12 +1457,11 @@
             }
             
             const doc = new window.jspdf.jsPDF();
-            doc.setFontSize(22);
-            doc.text(`Agendamentos do Dia: ${formatDate(date)}`, 15, 20);
-            doc.setFontSize(14);
-            doc.text(`Trajes: ${trajesCount}`, 15, 30);
+            doc.setFontSize(18);
+            doc.text(`Agendamentos do Dia: ${formatDate(date)} | Trajes: ${trajesCount}`, 15, 20);
             
-            let y = 40;
+            doc.setFontSize(14);
+            let y = 30;
 
             appointments.forEach(agendamento => {
                 if (y > 280) {
@@ -1469,12 +1469,7 @@
                     y = 20;
                 }
 
-                doc.setFontSize(12);
-                doc.text(`- Cliente: ${agendamento.cliente}`, 15, y);
-                y += 7;
-                doc.text(`  Serviço: ${agendamento.servico}`, 15, y);
-                y += 7;
-                doc.text(`  Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
