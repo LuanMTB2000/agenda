@@ -1406,6 +1406,20 @@
                 showMessage('Na segunda-feira, apenas o serviço de "Atendimento" está disponível.', 'error');
                 return;
             }
+            
+            const emailInput = document.getElementById('email');
+            let email = null;
+            if (emailInput && DRESS_SERVICES.includes(servico)) {
+                email = emailInput.value;
+                if (!email) {
+                    showMessage('O campo de e-mail é obrigatório para agendamentos de "Prova" e "Primeira Prova Vestido".', 'error');
+                    return;
+                }
+                if (email && (!email.includes('@') || email.length < 5)) {
+                    showMessage('Formato de email inválido.', 'error');
+                    return;
+                }
+            }
 
             try {
                 const appointmentsRef = db.collection('agendamentos');
@@ -1427,6 +1441,7 @@
                 await db.collection('agendamentos').add({
                     cliente,
                     telefone,
+                    email,
                     funcionario,
                     servico,
                     data: selectedDate,
@@ -1477,7 +1492,7 @@
         }
         
         // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
-        async function loadAgendamentos() {
+        function loadAgendamentos() {
             if (!db || !isConfigured) {
                 document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
                 return;
@@ -1488,19 +1503,16 @@
             document.getElementById('search-input').value = '';
 
             try {
-                const snapshot = await db.collection('agendamentos')
+                db.collection('agendamentos')
                     .orderBy('data', 'asc')
-                    .get();
-
-                if (snapshot.empty) {
-                    agendamentosList.innerHTML = `<div class="loading">Nenhum agendamento encontrado.</div>`;
-                    allAppointments = [];
-                    return;
-                }
-                
-                const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                allAppointments = agendamentos;
-                renderAgendamentos(agendamentos);
+                    .onSnapshot(snapshot => {
+                        const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                        allAppointments = agendamentos;
+                        renderAgendamentos(agendamentos);
+                    }, error => {
+                        console.error("Erro ao carregar agendamentos:", error);
+                        agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                    });
 
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
@@ -1544,7 +1556,6 @@
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
                         <div class="btn-group">
                           <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
-                          <button class="btn-download-pdf" onclick="downloadAgendaPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">Download PDF Agenda</button>
                         </div>
                     </h3>
                 `;
