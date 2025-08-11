@@ -55,15 +55,6 @@
             50% { transform: translateY(-10px); }
         }
 
-        .logo {
-            max-width: 280px;
-            height: auto;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-            position: relative;
-            z-index: 2;
-        }
-
         .header h1 {
             font-size: 2.2em;
             margin-bottom: 8px;
@@ -736,6 +727,11 @@
                                 </select>
                             </div>
 
+                            <div class="form-group" id="email-field-group" style="display: none;">
+                                <label for="email">📧 Email</label>
+                                <input type="email" id="email" placeholder="cliente@email.com">
+                            </div>
+
                             <div class="form-group full-width">
                                 <label>📅 Selecione o Mês e Ano</label>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
@@ -998,13 +994,13 @@
         // Função para atualizar as opções de serviço com base no dia da semana
         function updateServiceOptions(dayOfWeek) {
             const servicoSelect = document.getElementById('servico');
+            const servico = servicoSelect.value;
             servicoSelect.innerHTML = '<option value="">Selecione o serviço</option>';
 
             const isMonday = parseInt(dayOfWeek) === 1;
 
             if (isMonday) {
                 servicoSelect.innerHTML += `<option value="Atendimento">Atendimento</option>`;
-                
             } else {
                 servicoSelect.innerHTML += `
                     <option value="Atendimento">Atendimento</option>
@@ -1013,13 +1009,19 @@
                     <option value="Retirada Vestido">Retirada Vestido</option>
                 `;
             }
-            servicoSelect.selectedIndex = 0;
+            // Tenta manter a opção selecionada, se ela ainda existir
+            if (servico) {
+                const option = servicoSelect.querySelector(`option[value="${servico}"]`);
+                if (option) {
+                    servicoSelect.value = servico;
+                }
+            }
         }
 
         // Função para carregar horários disponíveis
         async function loadTimeSlots(dateString) {
             if (!db) {
-                document.getElementById('timeSlots').innerHTML = `<div class="error">Firebase não configurado. Por favor, tente recarregar a página.</div>`;
+                showMessage('Firebase não configurado. Por favor, tente recarregar a página.', 'error');
                 return;
             }
             
@@ -1052,7 +1054,6 @@
 
                 const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
                 const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-                
                 const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
                 const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
 
@@ -1094,7 +1095,6 @@
                     
                     const bookingsCount = existingAppointments[time] || 0;
                     
-                    // Lógica para definir o limite de agendamentos por horário
                     const selectedDay = new Date(dateString + 'T12:00:00').getDay();
                     const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
                     const isFull = bookingsCount >= currentMaxAppointments;
@@ -1456,7 +1456,7 @@
             }
             
             const doc = new window.jspdf.jsPDF();
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.text(`Agendamentos do Dia: ${formatDate(date)}`, 15, 20);
             doc.setFontSize(14);
             doc.text(`Trajes: ${trajesCount}`, 15, 30);
@@ -1504,7 +1504,7 @@
                 }
                 
                 const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                allAppointments = agendamentos; // Armazenará todos os agendamentos para a pesquisa
+                allAppointments = agendamentos;
                 renderAgendamentos(agendamentos);
 
             } catch (error) {
