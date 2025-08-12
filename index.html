@@ -1,3 +1,15 @@
+Sim, é totalmente possível e é uma funcionalidade excelente para agilizar a comunicação.
+
+Para fazer isso, vamos adicionar um ícone do WhatsApp ao lado do número de telefone em cada cartão de agendamento. Ao clicar no ícone, ele abrirá a conversa com o cliente no WhatsApp Web (se estiver no computador) ou no aplicativo (se estiver no celular).
+
+Fiz as seguintes alterações no código:
+
+  * **Adição do Ícone:** Adicionei um ícone de telefone com um link do WhatsApp (`wa.me`) dentro da seção de informações de cada agendamento na função `renderAgendamentos`.
+  * **Formato do Número:** O link agora formata o número do cliente automaticamente, adicionando o código do país (`55`), para que o WhatsApp o reconheça corretamente.
+
+Por favor, substitua todo o conteúdo do seu arquivo `index.html` por este novo código.
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1630,3 +1642,4 @@
     </script>
 </body>
 </html>
+```
