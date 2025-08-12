@@ -727,11 +727,6 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" id="email-field-group" style="display: none;">
-                                <label for="email">📧 Email</label>
-                                <input type="email" id="email" placeholder="cliente@email.com">
-                            </div>
-
                             <div class="form-group full-width">
                                 <label>📅 Selecione o Mês e Ano</label>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
@@ -1016,22 +1011,6 @@
                 if (option) {
                     servicoSelect.value = servico;
                 }
-            }
-        }
-
-        // Função para mostrar/esconder o campo de e-mail
-        function toggleEmailField() {
-            const servico = document.getElementById('servico').value;
-            const emailFieldGroup = document.getElementById('email-field-group');
-            const emailInput = document.getElementById('email');
-
-            if (servico === 'Primeira Prova Vestido') {
-                emailFieldGroup.style.display = 'block';
-                emailInput.required = true;
-            } else {
-                emailFieldGroup.style.display = 'none';
-                emailInput.required = false;
-                emailInput.value = '';
             }
         }
 
@@ -1422,20 +1401,6 @@
                 showMessage('Na segunda-feira, apenas o serviço de "Atendimento" está disponível.', 'error');
                 return;
             }
-            
-            const emailInput = document.getElementById('email');
-            let email = null;
-            if (emailInput && DRESS_SERVICES.includes(servico)) {
-                email = emailInput.value;
-                if (!email) {
-                    showMessage('O campo de e-mail é obrigatório para agendamentos de "Primeira Prova Vestido".', 'error');
-                    return;
-                }
-                if (email && (!email.includes('@') || email.length < 5)) {
-                    showMessage('Formato de email inválido.', 'error');
-                    return;
-                }
-            }
 
             try {
                 const appointmentsRef = db.collection('agendamentos');
@@ -1457,7 +1422,6 @@
                 await db.collection('agendamentos').add({
                     cliente,
                     telefone,
-                    email,
                     funcionario,
                     servico,
                     data: selectedDate,
@@ -1570,9 +1534,7 @@
                     <h3>
                         <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
-                        <div class="btn-group">
-                          <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
-                        </div>
+                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
                     </h3>
                 `;
                 
