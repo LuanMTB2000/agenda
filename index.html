@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MrJack - Sistema de Agendamentos</title>
     <style>
-        /* Estilos CSS (inalterados do seu código original) */
+        /* Estilos CSS */
         * {
             margin: 0;
             padding: 0;
@@ -15,7 +14,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #000; /* Alterado para preto */
+            background-color: #000;
             min-height: 100vh;
             padding: 20px;
         }
@@ -420,7 +419,13 @@
             font-size: 0.9em;
             font-weight: 600;
         }
-        
+
+        .agendamentos-dia h3 .btn-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
             color: white;
@@ -436,6 +441,17 @@
         .btn-download-pdf:hover {
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             transform: translateY(-2px);
+        }
+
+        .whatsapp-icon {
+            color: #25D366;
+            margin-left: 10px;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .whatsapp-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
         }
 
         .agendamento-info {
@@ -669,6 +685,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -1402,13 +1419,6 @@
             
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
             
-            // Validação de serviços permitidos na Segunda-feira
-            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
-            if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
-                showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
-                return;
-            }
-            
             try {
                 const appointmentsRef = db.collection('agendamentos');
                 const snapshot = await appointmentsRef
@@ -1471,7 +1481,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1543,7 +1553,6 @@
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
                         <div class="btn-group">
                           <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
-                          <button class="btn-download-pdf" onclick="downloadAgendaPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Download PDF Agenda</button>
                         </div>
                     </h3>
                 `;
@@ -1559,6 +1568,11 @@
                                 <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}</div>
                                 <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
                                 <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
+                                <div class="info-item">
+                                    <a href="https://wa.me/55${agendamento.telefone}?text=Ol%C3%A1%20${encodeURIComponent(agendamento.cliente)}!%20Confirmando%20seu%20agendamento%20para%20o%20dia%20${encodeURIComponent(formatDate(agendamento.data))}%20%C3%A0s%20${encodeURIComponent(agendamento.hora)}." target="_blank" class="whatsapp-icon">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                </div>
                             </div>
                             ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -1631,4 +1645,3 @@
     </script>
 </body>
 </html>
-```
