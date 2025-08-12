@@ -1400,12 +1400,14 @@
             }
             
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
+            
+            // Validação de serviços permitidos na Segunda-feira
             const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
             if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
                 showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
                 return;
             }
-
+            
             try {
                 const appointmentsRef = db.collection('agendamentos');
                 const snapshot = await appointmentsRef
@@ -1538,7 +1540,10 @@
                     <h3>
                         <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
-                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                        <div class="btn-group">
+                          <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                          <button class="btn-download-pdf" onclick="downloadAgendaPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Download PDF Agenda</button>
+                        </div>
                     </h3>
                 `;
                 
