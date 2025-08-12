@@ -725,9 +725,9 @@
                                 <select id="servico" required>
                                     <option value="">Selecione o serviço</option>
                                     <option value="Atendimento">Atendimento</option>
-                                    <option value="Prova">Prova</option>
                                     <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
                                     <option value="Retirada Vestido">Retirada Vestido</option>
+                                    <option value="Prova">Prova</option>
                                 </select>
                             </div>
 
@@ -886,7 +886,6 @@
             initFirebase();
             showTab('novo'); 
             document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
-            document.getElementById('servico').addEventListener('change', toggleEmailField);
         });
 
         // Função para mostrar mensagens
@@ -1476,8 +1475,8 @@
                     doc.addPage();
                     y = 20;
                 }
-                
-                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
+
+                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1561,14 +1560,13 @@
                                 <span class="agendamento-data">${agendamento.hora}</span>
                             </div>
                             <div class="agendamento-info">
-                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}</div>
-                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
-                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
-                                <div class="info-item">
-                                    <a href="https://wa.me/55${agendamento.telefone}?text=Ol%C3%A1%20${encodeURIComponent(agendamento.cliente)}!%20Confirmando%20seu%20agendamento%20para%20o%20dia%20${encodeURIComponent(formatDate(agendamento.data))}%20%C3%A0s%20${encodeURIComponent(agendamento.hora)}." target="_blank" class="whatsapp-icon">
+                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
+                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
                                         <i class="fab fa-whatsapp"></i>
                                     </a>
                                 </div>
+                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
+                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
                             </div>
                             ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
