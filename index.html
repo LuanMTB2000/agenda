@@ -996,8 +996,11 @@
             const isMonday = parseInt(dayOfWeek) === 1;
 
             if (isMonday) {
-                servicoSelect.innerHTML += `<option value="Atendimento">Atendimento</option>`;
-                
+                servicoSelect.innerHTML += `
+                    <option value="Atendimento">Atendimento</option>
+                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
+                    <option value="Retirada Vestido">Retirada Vestido</option>
+                `;
             } else {
                 servicoSelect.innerHTML += `
                     <option value="Atendimento">Atendimento</option>
@@ -1397,8 +1400,9 @@
             }
             
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
-            if (selectedDayOfWeek === 1 && servico !== 'Atendimento') {
-                showMessage('Na segunda-feira, apenas o serviço de "Atendimento" está disponível.', 'error');
+            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
+            if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
+                showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
                 return;
             }
 
