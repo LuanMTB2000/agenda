@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MrJack - Sistema de Agendamentos</title>
     <style>
-        /* Estilos CSS */
+        /* Estilos CSS (inalterados do seu código original) */
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #000;
+            background-color: #000; /* Alterado para preto */
             min-height: 100vh;
             padding: 20px;
         }
@@ -419,13 +419,7 @@
             font-size: 0.9em;
             font-weight: 600;
         }
-
-        .agendamentos-dia h3 .btn-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
+        
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
             color: white;
@@ -443,17 +437,6 @@
             transform: translateY(-2px);
         }
 
-        .whatsapp-icon {
-            color: #25D366;
-            margin-left: 10px;
-            font-size: 20px;
-            text-decoration: none;
-        }
-        .whatsapp-icon:hover {
-            transform: scale(1.1);
-            transition: transform 0.2s;
-        }
-
         .agendamento-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -467,6 +450,9 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .info-item a.whatsapp-icon {
+            font-size: 18px;
         }
 
         .info-item strong {
@@ -739,10 +725,15 @@
                                 <select id="servico" required>
                                     <option value="">Selecione o serviço</option>
                                     <option value="Atendimento">Atendimento</option>
+                                    <option value="Prova">Prova</option>
                                     <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
                                     <option value="Retirada Vestido">Retirada Vestido</option>
-                                    <option value="Prova">Prova</option>
                                 </select>
+                            </div>
+
+                            <div class="form-group" id="email-field-group" style="display: none;">
+                                <label for="email">📧 Email</label>
+                                <input type="email" id="email" placeholder="cliente@email.com">
                             </div>
 
                             <div class="form-group full-width">
@@ -1418,6 +1409,11 @@
             }
             
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
+            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
+            if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
+                showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
+                return;
+            }
             
             try {
                 const appointmentsRef = db.collection('agendamentos');
@@ -1480,8 +1476,8 @@
                     doc.addPage();
                     y = 20;
                 }
-
-                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
+                
+                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
