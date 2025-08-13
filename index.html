@@ -419,12 +419,6 @@
             font-size: 0.9em;
             font-weight: 600;
         }
-
-        .agendamentos-dia h3 .btn-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -739,6 +733,11 @@
                                 </select>
                             </div>
 
+                            <div class="form-group" id="email-field-group" style="display: none;">
+                                <label for="email">📧 Email</label>
+                                <input type="email" id="email" placeholder="cliente@email.com">
+                            </div>
+
                             <div class="form-group full-width">
                                 <label>📅 Selecione o Mês e Ano</label>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
@@ -848,7 +847,7 @@
                 • Preferência: terça ou quarta-feira.<br>
                 • Evitar: sexta-feira (risco alto de atrasos).<br>
                 • Quinta-feira: apenas de manhã, em último caso.<br>
-                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.</p>
+                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.<br>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
                 <p><strong>📍 5. Motivos das Regras</strong></p>
                 <p>• 🗂 Organização interna: tempo para higienizar, passar e preparar trajes.<br>
@@ -935,7 +934,6 @@
             initFirebase();
             showTab('novo'); 
             document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
-            document.getElementById('servico').addEventListener('change', toggleEmailField);
         });
 
         // Função para mostrar mensagens
