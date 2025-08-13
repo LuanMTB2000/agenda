@@ -143,7 +143,7 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -739,11 +739,6 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" id="email-field-group" style="display: none;">
-                                <label for="email">📧 Email</label>
-                                <input type="email" id="email" placeholder="cliente@email.com">
-                            </div>
-
                             <div class="form-group full-width">
                                 <label>📅 Selecione o Mês e Ano</label>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
@@ -1105,7 +1100,7 @@
                 const existingAppointments = {};
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.status !== 'cancelado') { 
+                    if (data.status === 'agendado') { 
                         if (existingAppointments[data.hora]) {
                             existingAppointments[data.hora]++;
                         } else {
@@ -1312,7 +1307,7 @@
                 
                 const existingAppointments = {};
                 snapshot.forEach(doc => {
-                    if (doc.id !== editAppointmentId && doc.data().status !== 'cancelado') {
+                    if (doc.id !== editAppointmentId && doc.data().status === 'agendado') {
                         const data = doc.data();
                         if (existingAppointments[data.hora]) {
                             existingAppointments[data.hora]++;
@@ -1474,7 +1469,7 @@
                 const snapshot = await appointmentsRef
                     .where('data', '==', selectedDate)
                     .where('hora', '==', selectedTime)
-                    .where('status', '!=', 'cancelado')
+                    .where('status', '==', 'agendado')
                     .get();
 
                 const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
@@ -1531,7 +1526,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
