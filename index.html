@@ -143,7 +143,7 @@
             align-items: center;
             gap: 10px;
         }
-
+        
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -419,6 +419,12 @@
             font-size: 0.9em;
             font-weight: 600;
         }
+
+        .agendamentos-dia h3 .btn-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -687,7 +693,10 @@
         <div class="content">
             <div id="novo-tab">
                 <div class="form-section">
-                    <h2>✨ Novo Agendamento</h2>
+                    <div class="list-header" style="align-items: flex-start;">
+                        <h2>✨ Novo Agendamento</h2>
+                        <button class="btn btn-alterar" onclick="openRegrasModal()">Regras de Agendamento</button>
+                    </div>
                     <div id="message-area"></div>
                     
                     <form id="agendamentoForm">
@@ -728,6 +737,11 @@
                                     <option value="Retirada Vestido">Retirada Vestido</option>
                                     <option value="Prova">Prova</option>
                                 </select>
+                            </div>
+
+                            <div class="form-group" id="email-field-group" style="display: none;">
+                                <label for="email">📧 Email</label>
+                                <input type="email" id="email" placeholder="cliente@email.com">
                             </div>
 
                             <div class="form-group full-width">
@@ -801,6 +815,52 @@
                 </div>
             </div>
             <button type="button" class="btn" onclick="saveEditedAppointment()">Salvar Alterações</button>
+        </div>
+    </div>
+    
+    <div id="regras-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeRegrasModal()">&times;</span>
+            <h3>📋 Documento – Horários e Regras de Provas na Mr. Jack</h3>
+            <div style="font-size: 1em; color: #374151;">
+                <p><strong>🎯 Objetivo</strong><br>Definir horários ideais e exceções para agendamento de provas (masculino e feminino), garantindo organização, qualidade nos ajustes e presença da costureira responsável.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>⏰ 2. Regras Gerais de Horários</strong></p>
+                <p>✅ Horários ideais para agendamento:<br>
+                • 🕙 10h da manhã<br>
+                • ⏳ Das 14h às 17h</p>
+                <p>⚠️ Horários a evitar:<br>
+                • 🚫 Antes das 10h → precisamos de tempo para organizar trajes e ajustes pendentes da manhã.<br>
+                • 🍽 Das 11h às 14h → intervalo de almoço da equipe e da costureira.<br>
+                • ⌛ Após as 17h → pouco tempo para ajustes antes do fim do expediente.</p>
+                <p>💡 Obs.: Esses horários “a evitar” podem ser usados apenas quando não houver outra opção, em casos de alto fluxo de agendamentos.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>🤵 3. Provas Masculinas</strong></p>
+                <p>• Todos os clientes do masculino experimentam o traje na semana do evento, nos horários ideais acima.<br>
+                • 📅 Dias permitidos:<br>
+                • ✅ Terça a sexta-feira<br>
+                • 🚫 Segunda-feira: não agendar.<br>
+                • ⚠️ Terça de manhã: evitar (trajes podem estar retornando e precisam de higienização).<br>
+                • Sábado: não realizamos provas masculinas (somente exceções com autorização da gerência).<br>
+                • Ajustes comuns: barra, acinturamento, comprimento de manga e detalhes adicionais.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>👗 4. Provas Femininas</strong></p>
+                <p>• 📌 Primeira prova: sempre duas semanas antes do evento<br>
+                • Agendar no início da semana.<br>
+                • Evitar horário de almoço da costureira responsável (atualmente, Ana).<br>
+                • Ana deve estar presente em todas as provas de vestidos.<br>
+                • 📌 Segunda prova (semana do evento):<br>
+                • Preferência: terça ou quarta-feira.<br>
+                • Evitar: sexta-feira (risco alto de atrasos).<br>
+                • Quinta-feira: apenas de manhã, em último caso.<br>
+                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>📍 5. Motivos das Regras</strong></p>
+                <p>• 🗂 Organização interna: tempo para higienizar, passar e preparar trajes.<br>
+                • 👩‍🔧 Disponibilidade da costureira: evitar almoço e final de expediente.<br>
+                • ⏱ Prevenção de atrasos: manter prazo seguro para ajustes.<br>
+                • 🤝 Qualidade no atendimento: garantir provas completas e sem pressa.</p>
+            </div>
         </div>
     </div>
 
@@ -880,6 +940,7 @@
             initFirebase();
             showTab('novo'); 
             document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
+            document.getElementById('servico').addEventListener('change', toggleEmailField);
         });
 
         // Função para mostrar mensagens
@@ -1408,20 +1469,6 @@
                 return;
             }
             
-            const emailInput = document.getElementById('email');
-            let email = null;
-            if (emailInput && DRESS_SERVICES.includes(servico)) {
-                email = emailInput.value;
-                if (!email) {
-                    showMessage('O campo de e-mail é obrigatório para agendamentos de "Primeira Prova Vestido".', 'error');
-                    return;
-                }
-                if (email && (!email.includes('@') || email.length < 5)) {
-                    showMessage('Formato de email inválido.', 'error');
-                    return;
-                }
-            }
-
             try {
                 const appointmentsRef = db.collection('agendamentos');
                 const snapshot = await appointmentsRef
@@ -1442,7 +1489,6 @@
                 await db.collection('agendamentos').add({
                     cliente,
                     telefone,
-                    email,
                     funcionario,
                     servico,
                     data: selectedDate,
@@ -1485,7 +1531,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
