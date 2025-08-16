@@ -143,7 +143,7 @@
             align-items: center;
             gap: 10px;
         }
-
+        
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -446,7 +446,7 @@
         .whatsapp-icon {
             color: #25D366;
             margin-left: 10px;
-            font-size: 18px;
+            font-size: 20px;
             text-decoration: none;
         }
         .whatsapp-icon:hover {
@@ -482,10 +482,6 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-        .status:hover {
-            transform: translateY(-2px);
         }
 
         .status.agendado {
@@ -494,27 +490,34 @@
         }
         
         .status.aguardando-montagem {
-            background-color: #8B0000;
+            background-color: #8B0000; /* Vermelho Sangue */
             color: white;
         }
 
         .status.traje-pronto {
-            background-color: #228B22;
+            background-color: #228B22; /* Verde */
+            color: white;
+        }
+
+        .status.barra {
+            background-color: #3f51b5; /* Azul */
+            color: white;
+        }
+
+        .status.costura {
+            background-color: #ff9800; /* Laranja */
             color: white;
         }
         
-        .status.barra, .status.costura, .status.passacao, .status.lavando {
-            background-color: #ff9800; /* Cores neutras para os status de processo */
-            color: white;
-        }
         .status.passacao {
-            background-color: #9c27b0;
+            background-color: #9c27b0; /* Roxo */
+            color: white;
         }
 
         .status.lavando {
-            background-color: #607d8b;
+            background-color: #607d8b; /* Cinza Chumbo */
+            color: white;
         }
-
 
         .status.concluido {
             background: linear-gradient(135deg, #10b981, #34d399);
@@ -926,6 +929,8 @@
         let editCalendarDate = new Date();
         let currentCalendarDate = new Date();
         let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
+        let concluidedAppointments = [];
+        let nonConcludedAppointments = [];
 
         // Constante global para a data/hora atual (usada para horários passados)
         const NOW_DATE_GLOBAL = new Date(); 
@@ -979,24 +984,12 @@
                 clickedTabButton.classList.add('active');
             }
             
-            if (tabName === 'lista') {
-                loadAgendamentos(false); // Carrega a lista de não-concluídos
-            } else if (tabName === 'concluidos') {
-                 loadAgendamentos(true); // Carrega a lista de concluídos
+            if (tabName === 'lista' || tabName === 'concluidos') {
+                loadAgendamentos();
             } else if (tabName === 'novo') {
                 currentCalendarDate = new Date(); 
                 generateDaySelector(); 
             }
-        }
-        
-        // Função para abrir a modal de regras
-        function openRegrasModal() {
-            document.getElementById('regras-modal').style.display = 'flex';
-        }
-
-        // Função para fechar a modal de regras
-        function closeRegrasModal() {
-            document.getElementById('regras-modal').style.display = 'none';
         }
 
         // Carregar configuração ao iniciar
@@ -1561,7 +1554,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1569,7 +1562,7 @@
         }
         
         // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
-        function loadAgendamentos(showConcluded = false) {
+        function loadAgendamentos() {
             if (!db || !isConfigured) {
                 document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
                 document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
@@ -1578,11 +1571,8 @@
             
             document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
             document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
-            const searchInput = document.getElementById('search-input');
-            const searchInputConcluidos = document.getElementById('search-input-concluidos');
-            if (searchInput) searchInput.value = '';
-            if (searchInputConcluidos) searchInputConcluidos.value = '';
-
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-input-concluidos').value = '';
 
             try {
                 db.collection('agendamentos')
@@ -1590,10 +1580,10 @@
                     .onSnapshot(snapshot => {
                         allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
                         
-                        const nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido' && a.status !== 'cancelado');
-                        const concludedAppointments = allAppointments.filter(a => a.status === 'concluido' || a.status === 'cancelado');
+                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido');
+                        concludedAppointments = allAppointments.filter(a => a.status === 'concluido');
 
-                        renderAgendamentos(nonConcludedAppointments, 'agendamentos-list', false);
+                        renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
                         renderAgendamentos(concludedAppointments, 'concluidos-list', true);
 
                     }, error => {
@@ -1633,9 +1623,9 @@
                 const dateB = new Date(b);
                 
                 if (isConcludedList) {
-                    return dateB - dateA;
+                    return dateB - dateA; // Para concluídos, ordena da mais recente para a mais antiga
                 } else {
-                    return dateA - dateB;
+                    return dateA - dateB; // Para não-concluídos, ordena da mais antiga para a mais recente
                 }
             });
             
@@ -1659,16 +1649,6 @@
                 `;
                 
                 agendamentosDoDia.forEach(agendamento => {
-                    const statusButton = createStatusButton(agendamento.status, agendamento.id);
-                    const buttonsHtml = `
-                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px;">
-                            ${statusButton.outerHTML}
-                            ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
-                            ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
-                            <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
-                        </div>
-                    `;
-                    
                     htmlDia += `
                         <div class="agendamento-card">
                             <div class="agendamento-header">
@@ -1685,7 +1665,12 @@
                                 <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
                             </div>
                             ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
-                            ${buttonsHtml}
+                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
+                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
+                                ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
+                                <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -1695,48 +1680,11 @@
             });
         }
         
-        // Funções para a nova lógica de status
-        const STATUSES = [
-            { text: 'Aguardando Montagem', value: 'aguardando-montagem', class: 'aguardando-montagem' },
-            { text: 'Barra', value: 'barra', class: 'barra' },
-            { text: 'Costura', value: 'costura', class: 'costura' },
-            { text: 'Passação', value: 'passacao', class: 'passacao' },
-            { text: 'Lavando', value: 'lavando', class: 'lavando' },
-            { text: 'Traje Pronto', value: 'traje-pronto', class: 'traje-pronto' }
-        ];
-
-        function createStatusButton(currentStatus, id) {
-            const button = document.createElement('button');
-            button.classList.add('status');
-            button.id = `status-btn-${id}`;
-            
-            const currentStatusObject = STATUSES.find(s => s.value === currentStatus) || STATUSES[0];
-            const currentIndex = STATUSES.indexOf(currentStatusObject);
-
-            button.textContent = currentStatusObject.text;
-            button.classList.add(currentStatusObject.class);
-
-            button.addEventListener('click', async (event) => {
-                event.stopPropagation(); // Evita que o evento de click do card seja disparado
-
-                const nextIndex = (currentIndex + 1) % STATUSES.length;
-                const nextStatusObject = STATUSES[nextIndex];
-                
-                try {
-                    await db.collection('agendamentos').doc(id).update({ status: nextStatusObject.value });
-                } catch (error) {
-                    console.error("Erro ao atualizar status:", error);
-                    showMessage(`Erro ao atualizar status: ${error.message}`, 'error');
-                }
-            });
-            return button;
-        }
-
-        // Nova função para filtrar os agendamentos
+        // Nova função para filtrar os agendamentos da aba principal
         function filterAgendamentos(query) {
             const normalizedQuery = query.toLowerCase().trim();
             if (normalizedQuery === '') {
-                renderAgendamentos(nonConcludedAppointments, 'agendamentos-list', false);
+                renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
                 return;
             }
             
@@ -1744,7 +1692,7 @@
                 return agendamento.cliente.toLowerCase().includes(normalizedQuery);
             });
             
-            renderAgendamentos(filteredAppointments, 'agendamentos-list', false);
+            renderAgendamentos(filteredAppointments, 'agendamentos-list');
         }
         
         // Nova função para filtrar os agendamentos da aba de concluídos
@@ -1764,7 +1712,7 @@
 
         // Função para cancelar agendamento
         async function cancelAgendamento(id) {
-            if (!confirm('Tem certeza que deseja apagar permanentemente este agendamento?')) {
+            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
                 return;
             }
             if (!db) {
@@ -1772,8 +1720,9 @@
                 return;
             }
             try {
-                await db.collection('agendamentos').doc(id).delete();
-                showMessage('Agendamento cancelado e removido com sucesso!', 'success');
+                await db.collection('agendamentos').doc(id).update({ status: 'cancelado' });
+                showMessage('Agendamento cancelado com sucesso!', 'success');
+                loadAgendamentos();
             } catch (error) {
                 console.error("Erro ao cancelar agendamento:", error);
                 showMessage(`Erro ao cancelar agendamento: ${error.message}`, 'error');
@@ -1792,6 +1741,7 @@
             try {
                 await db.collection('agendamentos').doc(id).update({ status: 'concluido' });
                 showMessage('Agendamento concluído com sucesso!', 'success');
+                loadAgendamentos();
             } catch (error) {
                 console.error("Erro ao concluir agendamento:", error);
                 showMessage(`Erro ao concluir agendamento: ${error.message}`, 'error');
