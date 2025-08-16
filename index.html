@@ -362,6 +362,7 @@
             gap: 10px;
             margin-top: 20px;
         }
+
         .status.aguardando-montagem { background-color: #8B0000; }
         .status.traje-pronto { background-color: #228B22; }
         .status.barra { background-color: #3f51b5; }
@@ -449,6 +450,12 @@
             font-size: 0.9em;
             font-weight: 600;
         }
+
+        .agendamentos-dia h3 .btn-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -466,6 +473,17 @@
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             transform: translateY(-2px);
         }
+        
+        .whatsapp-icon {
+            color: #25D366;
+            margin-left: 10px;
+            font-size: 18px;
+            text-decoration: none;
+        }
+        .whatsapp-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
 
         .agendamento-info {
             display: grid;
@@ -473,15 +491,13 @@
             gap: 15px;
             margin: 15px 0;
         }
+
         .info-item {
             font-size: 14px;
             color: #64748b;
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .info-item a.whatsapp-icon {
-            font-size: 18px;
         }
 
         .info-item strong {
@@ -1563,14 +1579,14 @@
 
                     }, error => {
                         console.error("Erro ao carregar agendamentos:", error);
-                        agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                        concluidosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
                     });
 
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
-                agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                concluidosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
             }
         }
         
@@ -1623,8 +1639,14 @@
                     </h3>
                 `;
                 
+                diaContainer.innerHTML = htmlDia;
+
                 agendamentosDoDia.forEach(agendamento => {
+                    const card = document.createElement('div');
+                    card.classList.add('agendamento-card');
+                    
                     const statusButton = createStatusButton(agendamento.status, agendamento.id);
+                    
                     const buttonsDiv = document.createElement('div');
                     buttonsDiv.classList.add('agendamento-card-buttons');
                     
@@ -1656,10 +1678,7 @@
                     alterButton.textContent = 'Alterar';
                     alterButton.onclick = () => openEditModal(agendamento.id);
                     buttonsDiv.appendChild(alterButton);
-
-                    const card = document.createElement('div');
-                    card.classList.add('agendamento-card');
-
+                    
                     card.innerHTML = `
                         <div class="agendamento-header">
                             <span class="agendamento-cliente">${agendamento.cliente}</span>
@@ -1667,7 +1686,7 @@
                         </div>
                         <div class="agendamento-info">
                             <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
-                                <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo, e se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
+                                <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
                                     <i class="fab fa-whatsapp"></i>
                                 </a>
                             </div>
@@ -1676,11 +1695,14 @@
                         </div>
                         ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                     `;
-                    
+
+                    // Anexa a div de botões ao card
                     card.appendChild(buttonsDiv);
-                    diaContainer.innerHTML = htmlDia;
-                    agendamentosList.appendChild(diaContainer);
+                    
+                    diaContainer.appendChild(card);
                 });
+                
+                agendamentosList.appendChild(diaContainer);
             });
         }
         
@@ -1701,7 +1723,7 @@
             let currentIndex = STATUSES.indexOf(currentStatusObject);
 
             button.textContent = currentStatusObject.text;
-            button.classList.add(currentStatusObject.class);
+            button.classList.add('status', currentStatusObject.class);
 
             button.addEventListener('click', async (event) => {
                 event.stopPropagation();
@@ -1721,17 +1743,29 @@
 
         function filterAgendamentos(query) {
             const normalizedQuery = query.toLowerCase().trim();
+            if (normalizedQuery === '') {
+                renderAgendamentos(nonConcludedAppointments, 'agendamentos-list', false);
+                return;
+            }
+            
             const filteredAppointments = nonConcludedAppointments.filter(agendamento => {
                 return agendamento.cliente.toLowerCase().includes(normalizedQuery);
             });
+            
             renderAgendamentos(filteredAppointments, 'agendamentos-list', false);
         }
         
         function filterConcluidos(query) {
             const normalizedQuery = query.toLowerCase().trim();
+            if (normalizedQuery === '') {
+                renderAgendamentos(concludedAppointments, 'concluidos-list', true);
+                return;
+            }
+            
             const filteredAppointments = concludedAppointments.filter(agendamento => {
                 return agendamento.cliente.toLowerCase().includes(normalizedQuery);
             });
+            
             renderAgendamentos(filteredAppointments, 'concluidos-list', true);
         }
 
