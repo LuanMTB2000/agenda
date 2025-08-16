@@ -143,7 +143,7 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -342,7 +342,6 @@
             font-size: 14px;
             margin: 0;
         }
-        
         .status-btn {
             padding: 8px 15px;
             border-radius: 20px;
@@ -363,7 +362,6 @@
             gap: 10px;
             margin-top: 20px;
         }
-
         .status.aguardando-montagem { background-color: #8B0000; }
         .status.traje-pronto { background-color: #228B22; }
         .status.barra { background-color: #3f51b5; }
@@ -373,6 +371,7 @@
         .status.agendado { background-color: #60a5fa; }
         .status.concluido { background-color: #34d399; }
         .status.cancelado { background-color: #f87171; }
+
 
         .agendamento-card {
             background: white;
@@ -467,17 +466,6 @@
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             transform: translateY(-2px);
         }
-        
-        .whatsapp-icon {
-            color: #25D366;
-            margin-left: 10px;
-            font-size: 18px;
-            text-decoration: none;
-        }
-        .whatsapp-icon:hover {
-            transform: scale(1.1);
-            transition: transform 0.2s;
-        }
 
         .agendamento-info {
             display: grid;
@@ -485,7 +473,6 @@
             gap: 15px;
             margin: 15px 0;
         }
-
         .info-item {
             font-size: 14px;
             color: #64748b;
@@ -493,11 +480,14 @@
             align-items: center;
             gap: 8px;
         }
+        .info-item a.whatsapp-icon {
+            font-size: 18px;
+        }
 
         .info-item strong {
             color: #374151;
         }
-        
+
         .loading {
             text-align: center;
             padding: 60px;
@@ -877,7 +867,7 @@
                 • Preferência: terça ou quarta-feira.<br>
                 • Evitar: sexta-feira (risco alto de atrasos).<br>
                 • Quinta-feira: apenas de manhã, em último caso.<br>
-                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.</p>
+                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.<br>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
                 <p><strong>📍 5. Motivos das Regras</strong></p>
                 <p>• 🗂 Organização interna: tempo para higienizar, passar e preparar trajes.<br>
@@ -900,7 +890,16 @@
         let allAppointments = []; 
         let concludedAppointments = [];
         let nonConcludedAppointments = [];
-        
+
+        const STATUSES = [
+            { text: 'Aguardando Montagem', value: 'aguardando-montagem', class: 'aguardando-montagem' },
+            { text: 'Barra', value: 'barra', class: 'barra' },
+            { text: 'Costura', value: 'costura', class: 'costura' },
+            { text: 'Passação', value: 'passacao', class: 'passacao' },
+            { text: 'Lavando', value: 'lavando', class: 'lavando' },
+            { text: 'Traje Pronto', value: 'traje-pronto', class: 'traje-pronto' }
+        ];
+
         const NOW_DATE_GLOBAL = new Date(); 
         NOW_DATE_GLOBAL.setSeconds(0, 0); 
 
@@ -955,6 +954,14 @@
                 currentCalendarDate = new Date(); 
                 generateDaySelector(); 
             }
+        }
+        
+        function openRegrasModal() {
+            document.getElementById('regras-modal').style.display = 'flex';
+        }
+
+        function closeRegrasModal() {
+            document.getElementById('regras-modal').style.display = 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1065,8 +1072,7 @@
             }
         }
         
-        // Função para carregar horários disponíveis
-        async function loadTimeSlots(dateString) {
+        function loadTimeSlots(dateString) {
             if (!db) {
                 showMessage('Firebase não configurado. Por favor, tente recarregar a página.', 'error');
                 return;
@@ -1083,113 +1089,115 @@
             try {
                 const appointmentsRef = db.collection('agendamentos');
                 
-                const snapshot = await appointmentsRef
+                db.collection('agendamentos')
                     .where('data', '==', dateString)
-                    .get();
-                
-                const existingAppointments = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status === 'agendado') { 
-                        if (existingAppointments[data.hora]) {
-                            existingAppointments[data.hora]++;
-                        } else {
-                            existingAppointments[data.hora] = 1;
-                        }
-                    }
-                });
-
-                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
-                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
-                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
-
-                let loopStartTime = new Date(dateString + 'T12:00:00');
-                loopStartTime.setHours(startHour, startMinute, 0, 0);
-
-                const endTime = new Date(dateString + 'T12:00:00');
-                endTime.setHours(endHour, endMinute, 0, 0);
-
-                const selectedDayDateOnly = new Date(dateString);
-                selectedDayDateOnly.setHours(0,0,0,0);
-
-                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
-                todayDateOnly.setHours(0,0,0,0);
-
-                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-                    let nextHour = new Date(NOW_DATE_GLOBAL);
-                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-                    
-                    if (nextHour < loopStartTime) {
-                        loopStartTime = new Date(loopStartTime);
-                    } else {
-                        loopStartTime = new Date(nextHour);
-                    }
-                }
-                
-                const availableSlots = [];
-                let currentTimeSlot = new Date(loopStartTime);
-
-                if (currentTimeSlot > endTime) {
-                    timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
-                    return;
-                }
-                
-                while (currentTimeSlot <= endTime) {
-                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
-                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
-                    const time = `${slotHour}:${slotMinute}`;
-                    
-                    const bookingsCount = existingAppointments[time] || 0;
-                    
-                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
-                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
-                    const isFull = bookingsCount >= currentMaxAppointments;
-
-                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
-
-                    let availabilityClass = '';
-
-                    if (isFull || isPastTime) {
-                        availabilityClass = 'unavailable';
-                    } else {
-                        availabilityClass = 'available';
-                    }
-
-                    availableSlots.push({
-                        time,
-                        isFull,
-                        isPastTime,
-                        availabilityClass,
-                    });
-
-                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
-                }
-
-                timeSlotsDiv.innerHTML = '';
-                if (availableSlots.length === 0) {
-                    timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
-                    return;
-                }
-
-                availableSlots.forEach(slot => {
-                    const slotElement = document.createElement('div');
-                    slotElement.classList.add('time-slot');
-                    slotElement.textContent = slot.time;
-                    
-                    if (slot.availabilityClass) {
-                        slotElement.classList.add(slot.availabilityClass);
-                    }
-
-                    if (!slot.isFull && !slot.isPastTime) {
-                        slotElement.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
-                            slotElement.classList.add('selected');
-                            selectedTime = slot.time;
+                    .onSnapshot(snapshot => {
+                        const existingAppointments = {};
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.status === 'agendado') { 
+                                if (existingAppointments[data.hora]) {
+                                    existingAppointments[data.hora]++;
+                                } else {
+                                    existingAppointments[data.hora] = 1;
+                                }
+                            }
                         });
-                    }
-                    timeSlotsDiv.appendChild(slotElement);
-                });
+
+                        const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                        const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
+                        const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
+                        const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
+
+                        let loopStartTime = new Date(dateString + 'T12:00:00');
+                        loopStartTime.setHours(startHour, startMinute, 0, 0);
+
+                        const endTime = new Date(dateString + 'T12:00:00');
+                        endTime.setHours(endHour, endMinute, 0, 0);
+
+                        const selectedDayDateOnly = new Date(dateString);
+                        selectedDayDateOnly.setHours(0,0,0,0);
+
+                        const todayDateOnly = new Date(NOW_DATE_GLOBAL);
+                        todayDateOnly.setHours(0,0,0,0);
+
+                        if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
+                            let nextHour = new Date(NOW_DATE_GLOBAL);
+                            nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+                            
+                            if (nextHour < loopStartTime) {
+                                loopStartTime = new Date(loopStartTime);
+                            } else {
+                                loopStartTime = new Date(nextHour);
+                            }
+                        }
+                        
+                        const availableSlots = [];
+                        let currentTimeSlot = new Date(loopStartTime);
+
+                        if (currentTimeSlot > endTime) {
+                            timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
+                            return;
+                        }
+                        
+                        while (currentTimeSlot <= endTime) {
+                            const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
+                            const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
+                            const time = `${slotHour}:${slotMinute}`;
+                            
+                            const bookingsCount = existingAppointments[time] || 0;
+                            
+                            const selectedDay = new Date(dateString + 'T12:00:00').getDay();
+                            const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+                            const isFull = bookingsCount >= currentMaxAppointments;
+
+                            const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
+
+                            let availabilityClass = '';
+
+                            if (isFull || isPastTime) {
+                                availabilityClass = 'unavailable';
+                            } else {
+                                availabilityClass = 'available';
+                            }
+
+                            availableSlots.push({
+                                time,
+                                isFull,
+                                isPastTime,
+                                availabilityClass,
+                            });
+
+                            currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
+                        }
+
+                        timeSlotsDiv.innerHTML = '';
+                        if (availableSlots.length === 0) {
+                            timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
+                            return;
+                        }
+
+                        availableSlots.forEach(slot => {
+                            const slotElement = document.createElement('div');
+                            slotElement.classList.add('time-slot');
+                            slotElement.textContent = slot.time;
+                            
+                            if (slot.availabilityClass) {
+                                slotElement.classList.add(slot.availabilityClass);
+                            }
+
+                            if (!slot.isFull && !slot.isPastTime) {
+                                slotElement.addEventListener('click', () => {
+                                    document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
+                                    slotElement.classList.add('selected');
+                                    selectedTime = slot.time;
+                                });
+                            }
+                            timeSlotsDiv.appendChild(slotElement);
+                        });
+
+                    });
+                
 
             } catch (error) {
                 console.error("Erro ao carregar horários:", error);
@@ -1459,7 +1467,7 @@
                 const snapshot = await appointmentsRef
                     .where('data', '==', selectedDate)
                     .where('hora', '==', selectedTime)
-                    .where('status', '!=', 'cancelado')
+                    .where('status', '==', 'agendado')
                     .get();
 
                 const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
@@ -1516,7 +1524,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1531,8 +1539,10 @@
                 return;
             }
             
-            document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
-            document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
+            const agendamentosList = document.getElementById('agendamentos-list');
+            agendamentosList.innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
+            const concluidosList = document.getElementById('concluidos-list');
+            concluidosList.innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
             const searchInput = document.getElementById('search-input');
             const searchInputConcluidos = document.getElementById('search-input-concluidos');
             if (searchInput) searchInput.value = '';
@@ -1545,22 +1555,22 @@
                     .onSnapshot(snapshot => {
                         allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
                         
-                        const nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido' && a.status !== 'cancelado');
-                        const concludedAppointments = allAppointments.filter(a => a.status === 'concluido' || a.status === 'cancelado');
+                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido' && a.status !== 'cancelado');
+                        concludedAppointments = allAppointments.filter(a => a.status === 'concluido' || a.status === 'cancelado');
 
                         renderAgendamentos(nonConcludedAppointments, 'agendamentos-list', false);
                         renderAgendamentos(concludedAppointments, 'concluidos-list', true);
 
                     }, error => {
                         console.error("Erro ao carregar agendamentos:", error);
-                        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                        agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                        concluidosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
                     });
 
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
-                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                concluidosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
             }
         }
         
@@ -1615,38 +1625,62 @@
                 
                 agendamentosDoDia.forEach(agendamento => {
                     const statusButton = createStatusButton(agendamento.status, agendamento.id);
-                    const buttonsHtml = `
-                        <div class="agendamento-card-buttons">
-                            ${statusButton.outerHTML}
-                            ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
-                            ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
-                            <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
+                    const buttonsDiv = document.createElement('div');
+                    buttonsDiv.classList.add('agendamento-card-buttons');
+                    
+                    buttonsDiv.appendChild(statusButton);
+                    
+                    if (agendamento.status !== 'cancelado') {
+                        const cancelButton = document.createElement('button');
+                        cancelButton.classList.add('btn', 'btn-danger');
+                        cancelButton.textContent = 'Cancelar';
+                        cancelButton.onclick = () => cancelAgendamento(agendamento.id);
+                        buttonsDiv.appendChild(cancelButton);
+                    }
+                    
+                    if (agendamento.status !== 'concluido') {
+                        const completeButton = document.createElement('button');
+                        completeButton.classList.add('btn');
+                        completeButton.textContent = 'Concluir';
+                        completeButton.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+                        completeButton.style.width = 'auto';
+                        completeButton.style.padding = '8px 16px';
+                        completeButton.style.fontSize = '14px';
+                        completeButton.style.margin = '0';
+                        completeButton.onclick = () => completeAgendamento(agendamento.id);
+                        buttonsDiv.appendChild(completeButton);
+                    }
+                    
+                    const alterButton = document.createElement('button');
+                    alterButton.classList.add('btn', 'btn-alterar');
+                    alterButton.textContent = 'Alterar';
+                    alterButton.onclick = () => openEditModal(agendamento.id);
+                    buttonsDiv.appendChild(alterButton);
+
+                    const card = document.createElement('div');
+                    card.classList.add('agendamento-card');
+
+                    card.innerHTML = `
+                        <div class="agendamento-header">
+                            <span class="agendamento-cliente">${agendamento.cliente}</span>
+                            <span class="agendamento-data">${agendamento.hora}</span>
                         </div>
+                        <div class="agendamento-info">
+                            <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
+                                <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo, e se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </div>
+                            <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
+                            <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
+                        </div>
+                        ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                     `;
                     
-                    htmlDia += `
-                        <div class="agendamento-card">
-                            <div class="agendamento-header">
-                                <span class="agendamento-cliente">${agendamento.cliente}</span>
-                                <span class="agendamento-data">${agendamento.hora}</span>
-                            </div>
-                            <div class="agendamento-info">
-                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
-                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </a>
-                                </div>
-                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
-                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
-                            </div>
-                            ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
-                            ${buttonsHtml}
-                        </div>
-                    `;
+                    card.appendChild(buttonsDiv);
+                    diaContainer.innerHTML = htmlDia;
+                    agendamentosList.appendChild(diaContainer);
                 });
-                
-                diaContainer.innerHTML = htmlDia;
-                agendamentosList.appendChild(diaContainer);
             });
         }
         
@@ -1685,33 +1719,19 @@
             return button;
         }
 
-        // Nova função para filtrar os agendamentos
         function filterAgendamentos(query) {
             const normalizedQuery = query.toLowerCase().trim();
-            if (normalizedQuery === '') {
-                renderAgendamentos(nonConcludedAppointments, 'agendamentos-list', false);
-                return;
-            }
-            
             const filteredAppointments = nonConcludedAppointments.filter(agendamento => {
                 return agendamento.cliente.toLowerCase().includes(normalizedQuery);
             });
-            
             renderAgendamentos(filteredAppointments, 'agendamentos-list', false);
         }
         
-        // Nova função para filtrar os agendamentos da aba de concluídos
         function filterConcluidos(query) {
             const normalizedQuery = query.toLowerCase().trim();
-            if (normalizedQuery === '') {
-                renderAgendamentos(concludedAppointments, 'concluidos-list', true);
-                return;
-            }
-            
             const filteredAppointments = concludedAppointments.filter(agendamento => {
                 return agendamento.cliente.toLowerCase().includes(normalizedQuery);
             });
-            
             renderAgendamentos(filteredAppointments, 'concluidos-list', true);
         }
 
