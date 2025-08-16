@@ -27,7 +27,7 @@
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 240, 0.2);
         }
 
         .header {
@@ -143,7 +143,7 @@
             align-items: center;
             gap: 10px;
         }
-
+        
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -419,6 +419,12 @@
             font-size: 0.9em;
             font-weight: 600;
         }
+
+        .agendamentos-dia h3 .btn-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -436,6 +442,17 @@
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             transform: translateY(-2px);
         }
+        
+        .whatsapp-icon {
+            color: #25D366;
+            margin-left: 10px;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .whatsapp-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
 
         .agendamento-info {
             display: grid;
@@ -443,15 +460,13 @@
             gap: 15px;
             margin: 15px 0;
         }
+
         .info-item {
             font-size: 14px;
             color: #64748b;
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .info-item a.whatsapp-icon {
-            font-size: 18px;
         }
 
         .info-item strong {
@@ -847,7 +862,7 @@
                 • Preferência: terça ou quarta-feira.<br>
                 • Evitar: sexta-feira (risco alto de atrasos).<br>
                 • Quinta-feira: apenas de manhã, em último caso.<br>
-                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.<br>
+                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.</p>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
                 <p><strong>📍 5. Motivos das Regras</strong></p>
                 <p>• 🗂 Organização interna: tempo para higienizar, passar e preparar trajes.<br>
@@ -1010,7 +1025,6 @@
                         selectedDate = dayBtn.dataset.date;
                         selectedTime = null;
                         
-                        updateServiceOptions(dayBtn.dataset.dayOfWeek);
                         loadTimeSlots(selectedDate);
                     });
                     daySelector.appendChild(dayBtn);
@@ -1026,13 +1040,11 @@
                 const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
                 if (activeBtn) {
                     activeBtn.classList.add('active');
-                    updateServiceOptions(activeBtn.dataset.dayOfWeek);
                     loadTimeSlots(selectedDate);
                 } else if (firstDayFound) {
                     const firstBtn = daySelector.querySelector('.day-btn');
                     firstBtn.classList.add('active');
                     selectedDate = firstBtn.dataset.date;
-                    updateServiceOptions(firstBtn.dataset.dayOfWeek);
                     loadTimeSlots(selectedDate);
                 } else {
                     document.getElementById('timeSlots').innerHTML = `<div class="loading">Nenhum dia disponível para agendamento neste mês.</div>`;
@@ -1043,36 +1055,6 @@
             }
         }
         
-        // Função para atualizar as opções de serviço com base no dia da semana
-        function updateServiceOptions(dayOfWeek) {
-            const servicoSelect = document.getElementById('servico');
-            const servico = servicoSelect.value;
-            servicoSelect.innerHTML = '<option value="">Selecione o serviço</option>';
-
-            const isMonday = parseInt(dayOfWeek) === 1;
-
-            if (isMonday) {
-                servicoSelect.innerHTML += `
-                    <option value="Atendimento">Atendimento</option>
-                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
-                    <option value="Retirada Vestido">Retirada Vestido</option>
-                `;
-            } else {
-                servicoSelect.innerHTML += `
-                    <option value="Atendimento">Atendimento</option>
-                    <option value="Prova">Prova</option>
-                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
-                    <option value="Retirada Vestido">Retirada Vestido</option>
-                `;
-            }
-            if (servico) {
-                const option = servicoSelect.querySelector(`option[value="${servico}"]`);
-                if (option) {
-                    servicoSelect.value = servico;
-                }
-            }
-        }
-
         // Função para carregar horários disponíveis
         async function loadTimeSlots(dateString) {
             if (!db) {
@@ -1467,7 +1449,7 @@
                 const snapshot = await appointmentsRef
                     .where('data', '==', selectedDate)
                     .where('hora', '==', selectedTime)
-                    .where('status', '==', 'agendado')
+                    .where('status', '!=', 'cancelado')
                     .get();
 
                 const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
@@ -1524,7 +1506,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
