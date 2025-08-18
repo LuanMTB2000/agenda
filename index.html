@@ -371,8 +371,6 @@
         .status.costura { background-color: #800080; }
         .status.lavando { background-color: #607d8b; }
         .status.concluido { background-color: #34d399; }
-        .status.cancelado { background-color: #f87171; }
-
 
         .agendamento-card {
             background: white;
@@ -491,13 +489,15 @@
             gap: 15px;
             margin: 15px 0;
         }
-
         .info-item {
             font-size: 14px;
             color: #64748b;
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .info-item a.whatsapp-icon {
+            font-size: 18px;
         }
 
         .info-item strong {
@@ -907,7 +907,7 @@
         let concludedAppointments = [];
         let nonConcludedAppointments = [];
 
-        const STATUSES = [\n            { text: \'Aguardando Montar\', value: \'aguardando-montar\', class: \'aguardando-montar\' },\n            { text: \'Barra\', value: \'barra\', class: \'barra\' },\n            { text: \'Costura\', value: \'costura\', class: \'costura\' },\n            { text: \'Passar\', value: \'passar\', class: \'passar\' },\n            { text: \'Traje Pronto\', value: \'traje-pronto\', class: \'traje-pronto\' }\n        ];
+        const STATUSES = [\n            { text: \'Aguardando Montagem\', value: \'aguardando-montagem\', class: \'aguardando-montagem\' },\n            { text: \'Barra\', value: \'barra\', class: \'barra\' },\n            { text: \'Costura\', value: \'costura\', class: \'costura\' },\n            { text: \'Passação\', value: \'passacao\', class: \'passacao\' },\n            { text: \'Lavando\', value: \'lavando\', class: \'lavando\' },\n            { text: \'Traje Pronto\', value: \'traje-pronto\', class: \'traje-pronto\' }\n        ];
         
         const NOW_DATE_GLOBAL = new Date(); 
         NOW_DATE_GLOBAL.setSeconds(0, 0); 
@@ -1533,7 +1533,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1548,8 +1548,10 @@
                 return;
             }
             
-            document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
-            document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
+            const agendamentosList = document.getElementById('agendamentos-list');
+            agendamentosList.innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
+            const concluidosList = document.getElementById('concluidos-list');
+            concluidosList.innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
             const searchInput = document.getElementById('search-input');
             const searchInputConcluidos = document.getElementById('search-input-concluidos');
             if (searchInput) searchInput.value = '';
@@ -1685,7 +1687,7 @@
                         </div>
                         ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                     `;
-
+                    
                     card.appendChild(cardInfoHtml);
                     card.appendChild(buttonsDiv);
                     
@@ -1706,12 +1708,11 @@
 
         function createStatusButton(currentStatus, id) {
             const button = document.createElement('button');
-            
-            const currentStatusObject = STATUSES.find(s => s.value === currentStatus) || { text: 'Aguardando Montar', value: 'aguardando-montar', class: 'aguardando-montar' };
+            const currentStatusObject = STATUSES.find(s => s.value === currentStatus) || STATUSES[0];
             let currentIndex = STATUSES.indexOf(currentStatusObject);
 
             button.textContent = currentStatusObject.text;
-            button.classList.add('status', currentStatusObject.class);
+            button.classList.add('status-btn', currentStatusObject.class);
 
             button.addEventListener('click', async (event) => {
                 event.stopPropagation();
