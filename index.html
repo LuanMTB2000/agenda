@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MrJack - Sistema de Agendamentos</title>
     <style>
-        /* Estilos CSS (inalterados do seu código original) */
+        /* Estilos CSS */
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #000; /* Alterado para preto */
+            background-color: #000;
             min-height: 100vh;
             padding: 20px;
         }
@@ -342,6 +342,37 @@
             font-size: 14px;
             margin: 0;
         }
+        .status-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .agendamento-card-buttons {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .status.agendado { background-color: #60a5fa; }
+        .status.aguardando-montar { background-color: #8B0000; }
+        .status.traje-pronto { background-color: #228B22; }
+        .status.barra { background-color: #800080; }
+        .status.passar { background-color: #89CFF0; }
+        .status.costura { background-color: #800080; }
+        .status.lavando { background-color: #607d8b; }
+        .status.concluido { background-color: #34d399; }
+        .status.cancelado { background-color: #f87171; }
+
 
         .agendamento-card {
             background: white;
@@ -419,6 +450,12 @@
             font-size: 0.9em;
             font-weight: 600;
         }
+
+        .agendamentos-dia h3 .btn-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -436,6 +473,17 @@
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             transform: translateY(-2px);
         }
+        
+        .whatsapp-icon {
+            color: #25D366;
+            margin-left: 10px;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .whatsapp-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
 
         .agendamento-info {
             display: grid;
@@ -451,38 +499,9 @@
             align-items: center;
             gap: 8px;
         }
-        .info-item a.whatsapp-icon {
-            font-size: 18px;
-        }
 
         .info-item strong {
             color: #374151;
-        }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status.agendado {
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
-            color: white;
-        }
-
-        .status.concluido {
-            background: linear-gradient(135deg, #10b981, #34d399);
-            color: white;
-        }
-
-        .status.cancelado {
-            background: linear-gradient(135deg, #ef4444, #f87171);
-            color: white;
         }
 
         .loading {
@@ -683,12 +702,16 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('novo')">✨ Novo Agendamento</button>
             <button class="tab" onclick="showTab('lista')">📋 Agendamentos</button>
+            <button class="tab" onclick="showTab('concluidos')">✅ Concluídos</button>
         </div>
 
         <div class="content">
             <div id="novo-tab">
                 <div class="form-section">
-                    <h2>✨ Novo Agendamento</h2>
+                    <div class="list-header" style="align-items: flex-start;">
+                        <h2>✨ Novo Agendamento</h2>
+                        <button class="btn btn-alterar" onclick="openRegrasModal()">Regras de Agendamento</button>
+                    </div>
                     <div id="message-area"></div>
                     
                     <form id="agendamentoForm">
@@ -739,9 +762,9 @@
                             <div class="form-group full-width">
                                 <label>📅 Selecione o Mês e Ano</label>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(-1)">◀ Anterior</button>
+                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(-1)">&#9664; Anterior</button>
                                     <span id="currentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
-                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(1)">Próximo ▶</button>
+                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(1)">Próximo &#9654;</button>
                                 </div>
                             </div>
                             <div class="form-group full-width">
@@ -782,6 +805,21 @@
                     </div>
                 </div>
             </div>
+            
+            <div id="concluidos-tab" class="hidden">
+                <div class="form-section">
+                    <div class="list-header">
+                        <h2>✅ Agendamentos Concluídos</h2>
+                        <div class="search-container">
+                            <input type="text" id="search-input-concluidos" placeholder="Pesquisar por cliente..." oninput="filterConcluidos(this.value)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                    </div>
+                    <div id="concluidos-list">
+                        <div class="loading">Carregando agendamentos concluídos...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -795,9 +833,9 @@
                 <div class="form-group full-width">
                     <label>📅 Nova Data</label>
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(-1)">◀ Anterior</button>
+                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(-1)">&#9664; Anterior</button>
                         <span id="editCurrentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
-                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(1)">Próximo ▶</button>
+                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(1)">Próximo &#9654;</button>
                     </div>
                     <div class="day-selector" id="editDaySelector"></div>
                 </div>
@@ -807,6 +845,52 @@
                 </div>
             </div>
             <button type="button" class="btn" onclick="saveEditedAppointment()">Salvar Alterações</button>
+        </div>
+    </div>
+    
+    <div id="regras-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeRegrasModal()">&times;</span>
+            <h3>📋 Documento – Horários e Regras de Provas na Mr. Jack</h3>
+            <div style="font-size: 1em; color: #374151;">
+                <p><strong>🎯 Objetivo</strong><br>Definir horários ideais e exceções para agendamento de provas (masculino e feminino), garantindo organização, qualidade nos ajustes e presença da costureira responsável.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>⏰ 2. Regras Gerais de Horários</strong></p>
+                <p>✅ Horários ideais para agendamento:<br>
+                • 🕙 10h da manhã<br>
+                • ⏳ Das 14h às 17h</p>
+                <p>⚠️ Horários a evitar:<br>
+                • 🚫 Antes das 10h → precisamos de tempo para organizar trajes e ajustes pendentes da manhã.<br>
+                • 🍽 Das 11h às 14h → intervalo de almoço da equipe e da costureira.<br>
+                • ⌛ Após as 17h → pouco tempo para ajustes antes do fim do expediente.</p>
+                <p>💡 Obs.: Esses horários “a evitar” podem ser usados apenas quando não houver outra opção, em casos de alto fluxo de agendamentos.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>🤵 3. Provas Masculinas</strong></p>
+                <p>• Todos os clientes do masculino experimentam o traje na semana do evento, nos horários ideais acima.<br>
+                • 📅 Dias permitidos:<br>
+                • ✅ Terça a sexta-feira<br>
+                • 🚫 Segunda-feira: não agendar.<br>
+                • ⚠️ Terça de manhã: evitar (trajes podem estar retornando e precisam de higienização).<br>
+                • Sábado: não realizamos provas masculinas (somente exceções com autorização da gerência).<br>
+                • Ajustes comuns: barra, acinturamento, comprimento de manga e detalhes adicionais.</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>👗 4. Provas Femininas</strong></p>
+                <p>• 📌 Primeira prova: sempre duas semanas antes do evento<br>
+                • Agendar no início da semana.<br>
+                • Evitar horário de almoço da costureira responsável (atualmente, Ana).<br>
+                • Ana deve estar presente em todas as provas de vestidos.<br>
+                • 📌 Segunda prova (semana do evento):<br>
+                • Preferência: terça ou quarta-feira.<br>
+                • Evitar: sexta-feira (risco alto de atrasos).<br>
+                • Quinta-feira: apenas de manhã, em último caso.<br>
+                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.<br>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                <p><strong>📍 5. Motivos das Regras</strong></p>
+                <p>• 🗂 Organização interna: tempo para higienizar, passar e preparar trajes.<br>
+                • 👩‍🔧 Disponibilidade da costureira: evitar almoço e final de expediente.<br>
+                • ⏱ Prevenção de atrasos: manter prazo seguro para ajustes.<br>
+                • 🤝 Qualidade no atendimento: garantir provas completas e sem pressa.</p>
+            </div>
         </div>
     </div>
 
@@ -819,13 +903,15 @@
         let editAppointmentId = null;
         let editCalendarDate = new Date();
         let currentCalendarDate = new Date();
-        let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
+        let allAppointments = []; 
+        let concludedAppointments = [];
+        let nonConcludedAppointments = [];
 
-        // Constante global para a data/hora atual (usada para horários passados)
+        const STATUSES = [\n            { text: \'Aguardando Montar\', value: \'aguardando-montar\', class: \'aguardando-montar\' },\n            { text: \'Barra\', value: \'barra\', class: \'barra\' },\n            { text: \'Costura\', value: \'costura\', class: \'costura\' },\n            { text: \'Passar\', value: \'passar\', class: \'passar\' },\n            { text: \'Traje Pronto\', value: \'traje-pronto\', class: \'traje-pronto\' }\n        ];
+        
         const NOW_DATE_GLOBAL = new Date(); 
-        NOW_DATE_GLOBAL.setSeconds(0, 0); // Zera segundos e milissegundos para precisão da meia hora
+        NOW_DATE_GLOBAL.setSeconds(0, 0); 
 
-        // Horários de funcionamento
         const WORKING_HOURS = {
             start: '10:00',
             end: '17:00',
@@ -835,13 +921,10 @@
         const MAX_APPOINTMENTS_PER_HOUR = 4;
         const MAX_APPOINTMENTS_SATURDAY = 1; 
         
-        // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15'];
         
-        // Tipos de serviço que contam como "trajes"
         const DRESS_SERVICES = ['Prova', 'Primeira Prova Vestido', 'Retirada Vestido'];
 
-        // Funções do Firebase
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ",
             authDomain: "agenda-mr-jack.firebaseapp.com",
@@ -857,7 +940,6 @@
             console.log('Firebase inicializado com sucesso!');
         }
 
-        // Função para mostrar abas
         function showTab(tabName) {
             document.querySelectorAll('[id$="-tab"]').forEach(tab => {
                 tab.classList.add('hidden');
@@ -874,21 +956,29 @@
             }
             
             if (tabName === 'lista') {
-                loadAgendamentos();
+                loadAgendamentos(false);
+            } else if (tabName === 'concluidos') {
+                 loadAgendamentos(true);
             } else if (tabName === 'novo') {
                 currentCalendarDate = new Date(); 
                 generateDaySelector(); 
             }
         }
+        
+        function openRegrasModal() {
+            document.getElementById('regras-modal').style.display = 'flex';
+        }
 
-        // Carregar configuração ao iniciar
+        function closeRegrasModal() {
+            document.getElementById('regras-modal').style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
             showTab('novo'); 
             document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
         });
 
-        // Função para mostrar mensagens
         function showMessage(message, type = 'success', targetElement = 'message-area') {
             const messageArea = document.getElementById(targetElement);
             messageArea.innerHTML = `<div class="${type}">${message}</div>`;
@@ -922,7 +1012,6 @@
             generateDaySelector(); 
         }
 
-        // Função para gerar seletor de dias
         function generateDaySelector() {
             const daySelector = document.getElementById('daySelector');
             const currentMonthYearSpan = document.getElementById('currentMonthYear');
@@ -962,7 +1051,6 @@
                         selectedDate = dayBtn.dataset.date;
                         selectedTime = null;
                         
-                        updateServiceOptions(dayBtn.dataset.dayOfWeek);
                         loadTimeSlots(selectedDate);
                     });
                     daySelector.appendChild(dayBtn);
@@ -978,13 +1066,11 @@
                 const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
                 if (activeBtn) {
                     activeBtn.classList.add('active');
-                    updateServiceOptions(activeBtn.dataset.dayOfWeek);
                     loadTimeSlots(selectedDate);
                 } else if (firstDayFound) {
                     const firstBtn = daySelector.querySelector('.day-btn');
                     firstBtn.classList.add('active');
                     selectedDate = firstBtn.dataset.date;
-                    updateServiceOptions(firstBtn.dataset.dayOfWeek);
                     loadTimeSlots(selectedDate);
                 } else {
                     document.getElementById('timeSlots').innerHTML = `<div class="loading">Nenhum dia disponível para agendamento neste mês.</div>`;
@@ -995,38 +1081,7 @@
             }
         }
         
-        // Função para atualizar as opções de serviço com base no dia da semana
-        function updateServiceOptions(dayOfWeek) {
-            const servicoSelect = document.getElementById('servico');
-            const servico = servicoSelect.value;
-            servicoSelect.innerHTML = '<option value="">Selecione o serviço</option>';
-
-            const isMonday = parseInt(dayOfWeek) === 1;
-
-            if (isMonday) {
-                servicoSelect.innerHTML += `
-                    <option value="Atendimento">Atendimento</option>
-                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
-                    <option value="Retirada Vestido">Retirada Vestido</option>
-                `;
-            } else {
-                servicoSelect.innerHTML += `
-                    <option value="Atendimento">Atendimento</option>
-                    <option value="Prova">Prova</option>
-                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
-                    <option value="Retirada Vestido">Retirada Vestido</option>
-                `;
-            }
-            if (servico) {
-                const option = servicoSelect.querySelector(`option[value="${servico}"]`);
-                if (option) {
-                    servicoSelect.value = servico;
-                }
-            }
-        }
-
-        // Função para carregar horários disponíveis
-        async function loadTimeSlots(dateString) {
+        function loadTimeSlots(dateString) {
             if (!db) {
                 showMessage('Firebase não configurado. Por favor, tente recarregar a página.', 'error');
                 return;
@@ -1043,113 +1098,115 @@
             try {
                 const appointmentsRef = db.collection('agendamentos');
                 
-                const snapshot = await appointmentsRef
+                db.collection('agendamentos')
                     .where('data', '==', dateString)
-                    .get();
-                
-                const existingAppointments = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status !== 'cancelado') { 
-                        if (existingAppointments[data.hora]) {
-                            existingAppointments[data.hora]++;
-                        } else {
-                            existingAppointments[data.hora] = 1;
-                        }
-                    }
-                });
-
-                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
-                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
-                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
-
-                let loopStartTime = new Date(dateString + 'T12:00:00');
-                loopStartTime.setHours(startHour, startMinute, 0, 0);
-
-                const endTime = new Date(dateString + 'T12:00:00');
-                endTime.setHours(endHour, endMinute, 0, 0);
-
-                const selectedDayDateOnly = new Date(dateString);
-                selectedDayDateOnly.setHours(0,0,0,0);
-
-                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
-                todayDateOnly.setHours(0,0,0,0);
-
-                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-                    let nextHour = new Date(NOW_DATE_GLOBAL);
-                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-                    
-                    if (nextHour < loopStartTime) {
-                        loopStartTime = new Date(loopStartTime);
-                    } else {
-                        loopStartTime = new Date(nextHour);
-                    }
-                }
-                
-                const availableSlots = [];
-                let currentTimeSlot = new Date(loopStartTime);
-
-                if (currentTimeSlot > endTime) {
-                    timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
-                    return;
-                }
-                
-                while (currentTimeSlot <= endTime) {
-                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
-                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
-                    const time = `${slotHour}:${slotMinute}`;
-                    
-                    const bookingsCount = existingAppointments[time] || 0;
-                    
-                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
-                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
-                    const isFull = bookingsCount >= currentMaxAppointments;
-
-                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
-
-                    let availabilityClass = '';
-
-                    if (isFull || isPastTime) {
-                        availabilityClass = 'unavailable';
-                    } else {
-                        availabilityClass = 'available';
-                    }
-
-                    availableSlots.push({
-                        time,
-                        isFull,
-                        isPastTime,
-                        availabilityClass,
-                    });
-
-                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
-                }
-
-                timeSlotsDiv.innerHTML = '';
-                if (availableSlots.length === 0) {
-                    timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
-                    return;
-                }
-
-                availableSlots.forEach(slot => {
-                    const slotElement = document.createElement('div');
-                    slotElement.classList.add('time-slot');
-                    slotElement.textContent = slot.time;
-                    
-                    if (slot.availabilityClass) {
-                        slotElement.classList.add(slot.availabilityClass);
-                    }
-
-                    if (!slot.isFull && !slot.isPastTime) {
-                        slotElement.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
-                            slotElement.classList.add('selected');
-                            selectedTime = slot.time;
+                    .onSnapshot(snapshot => {
+                        const existingAppointments = {};
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.status === 'agendado') { 
+                                if (existingAppointments[data.hora]) {
+                                    existingAppointments[data.hora]++;
+                                } else {
+                                    existingAppointments[data.hora] = 1;
+                                }
+                            }
                         });
-                    }
-                    timeSlotsDiv.appendChild(slotElement);
-                });
+
+                        const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                        const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
+                        const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
+                        const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
+
+                        let loopStartTime = new Date(dateString + 'T12:00:00');
+                        loopStartTime.setHours(startHour, startMinute, 0, 0);
+
+                        const endTime = new Date(dateString + 'T12:00:00');
+                        endTime.setHours(endHour, endMinute, 0, 0);
+
+                        const selectedDayDateOnly = new Date(dateString);
+                        selectedDayDateOnly.setHours(0,0,0,0);
+
+                        const todayDateOnly = new Date(NOW_DATE_GLOBAL);
+                        todayDateOnly.setHours(0,0,0,0);
+
+                        if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
+                            let nextHour = new Date(NOW_DATE_GLOBAL);
+                            nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+                            
+                            if (nextHour < loopStartTime) {
+                                loopStartTime = new Date(loopStartTime);
+                            } else {
+                                loopStartTime = new Date(nextHour);
+                            }
+                        }
+                        
+                        const availableSlots = [];
+                        let currentTimeSlot = new Date(loopStartTime);
+
+                        if (currentTimeSlot > endTime) {
+                            timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
+                            return;
+                        }
+                        
+                        while (currentTimeSlot <= endTime) {
+                            const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
+                            const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
+                            const time = `${slotHour}:${slotMinute}`;
+                            
+                            const bookingsCount = existingAppointments[time] || 0;
+                            
+                            const selectedDay = new Date(dateString + 'T12:00:00').getDay();
+                            const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+                            const isFull = bookingsCount >= currentMaxAppointments;
+
+                            const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
+
+                            let availabilityClass = '';
+
+                            if (isFull || isPastTime) {
+                                availabilityClass = 'unavailable';
+                            } else {
+                                availabilityClass = 'available';
+                            }
+
+                            availableSlots.push({
+                                time,
+                                isFull,
+                                isPastTime,
+                                availabilityClass,
+                            });
+
+                            currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
+                        }
+
+                        timeSlotsDiv.innerHTML = '';
+                        if (availableSlots.length === 0) {
+                            timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
+                            return;
+                        }
+
+                        availableSlots.forEach(slot => {
+                            const slotElement = document.createElement('div');
+                            slotElement.classList.add('time-slot');
+                            slotElement.textContent = slot.time;
+                            
+                            if (slot.availabilityClass) {
+                                slotElement.classList.add(slot.availabilityClass);
+                            }
+
+                            if (!slot.isFull && !slot.isPastTime) {
+                                slotElement.addEventListener('click', () => {
+                                    document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
+                                    slotElement.classList.add('selected');
+                                    selectedTime = slot.time;
+                                });
+                            }
+                            timeSlotsDiv.appendChild(slotElement);
+                        });
+
+                    });
+                
 
             } catch (error) {
                 console.error("Erro ao carregar horários:", error);
@@ -1257,7 +1314,7 @@
                 
                 const existingAppointments = {};
                 snapshot.forEach(doc => {
-                    if (doc.id !== editAppointmentId && doc.data().status !== 'cancelado') {
+                    if (doc.id !== editAppointmentId && doc.data().status === 'agendado') {
                         const data = doc.data();
                         if (existingAppointments[data.hora]) {
                             existingAppointments[data.hora]++;
@@ -1484,37 +1541,49 @@
         }
         
         // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
-        function loadAgendamentos() {
+        function loadAgendamentos(showConcluded = false) {
             if (!db || !isConfigured) {
                 document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
+                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
                 return;
             }
             
-            const agendamentosList = document.getElementById('agendamentos-list');
-            agendamentosList.innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
-            document.getElementById('search-input').value = '';
+            document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
+            document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
+            const searchInput = document.getElementById('search-input');
+            const searchInputConcluidos = document.getElementById('search-input-concluidos');
+            if (searchInput) searchInput.value = '';
+            if (searchInputConcluidos) searchInputConcluidos.value = '';
+
 
             try {
                 db.collection('agendamentos')
-                    .orderBy('data', 'asc')
+                    .orderBy('timestamp', 'desc')
                     .onSnapshot(snapshot => {
-                        const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                        allAppointments = agendamentos;
-                        renderAgendamentos(agendamentos);
+                        allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                        
+                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido' && a.status !== 'cancelado');
+                        concludedAppointments = allAppointments.filter(a => a.status === 'concluido' || a.status === 'cancelado');
+
+                        renderAgendamentos(nonConcludedAppointments, 'agendamentos-list', false);
+                        renderAgendamentos(concludedAppointments, 'concluidos-list', true);
+
                     }, error => {
                         console.error("Erro ao carregar agendamentos:", error);
-                        agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
                     });
 
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:", error);
-                agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
             }
         }
         
         // Função para renderizar os agendamentos na tela
-        function renderAgendamentos(agendamentosToRender) {
-            const agendamentosList = document.getElementById('agendamentos-list');
+        function renderAgendamentos(agendamentosToRender, listId, isConcludedList = false) {
+            const agendamentosList = document.getElementById(listId);
             agendamentosList.innerHTML = '';
             
             if (agendamentosToRender.length === 0) {
@@ -1531,7 +1600,16 @@
                 agendamentosPorDia[data].push(agendamento);
             });
             
-            const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => new Date(a) - new Date(b));
+            const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => {
+                const dateA = new Date(a);
+                const dateB = new Date(b);
+                
+                if (isConcludedList) {
+                    return dateB - dateA;
+                } else {
+                    return dateA - dateB;
+                }
+            });
             
             datasOrdenadas.forEach(data => {
                 const agendamentosDoDia = agendamentosPorDia[data];
@@ -1542,66 +1620,133 @@
                 const diaContainer = document.createElement('div');
                 diaContainer.classList.add('agendamentos-dia');
                 
-                let htmlDia = `
-                    <h3>
-                        <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
-                        <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
-                        <div class="btn-group">
-                          <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
-                        </div>
-                    </h3>
+                const headerHtml = document.createElement('h3');
+                headerHtml.innerHTML = `
+                    <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
+                    <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
+                    <div class="btn-group">
+                      <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                    </div>
                 `;
-                
+                diaContainer.appendChild(headerHtml);
+
                 agendamentosDoDia.forEach(agendamento => {
-                    htmlDia += `
-                        <div class="agendamento-card">
-                            <div class="agendamento-header">
-                                <span class="agendamento-cliente">${agendamento.cliente}</span>
-                                <span class="agendamento-data">${agendamento.hora}</span>
-                            </div>
-                            <div class="agendamento-info">
-                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
-                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </a>
-                                </div>
-                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
-                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
-                            </div>
-                            ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
-                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
-                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
-                                ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
-                                <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
-                            </div>
+                    const card = document.createElement('div');
+                    card.classList.add('agendamento-card');
+                    
+                    const statusButton = createStatusButton(agendamento.status, agendamento.id);
+                    
+                    const buttonsDiv = document.createElement('div');
+                    buttonsDiv.classList.add('agendamento-card-buttons');
+                    
+                    buttonsDiv.appendChild(statusButton);
+                    
+                    if (agendamento.status !== 'cancelado') {
+                        const cancelButton = document.createElement('button');
+                        cancelButton.classList.add('btn', 'btn-danger');
+                        cancelButton.textContent = 'Cancelar';
+                        cancelButton.onclick = () => cancelAgendamento(agendamento.id);
+                        buttonsDiv.appendChild(cancelButton);
+                    }
+                    
+                    if (agendamento.status !== 'concluido') {
+                        const completeButton = document.createElement('button');
+                        completeButton.classList.add('btn');
+                        completeButton.textContent = 'Concluir';
+                        completeButton.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+                        completeButton.style.width = 'auto';
+                        completeButton.style.padding = '8px 16px';
+                        completeButton.style.fontSize = '14px';
+                        completeButton.style.margin = '0';
+                        completeButton.onclick = () => completeAgendamento(agendamento.id);
+                        buttonsDiv.appendChild(completeButton);
+                    }
+                    
+                    const alterButton = document.createElement('button');
+                    alterButton.classList.add('btn', 'btn-alterar');
+                    alterButton.textContent = 'Alterar';
+                    alterButton.onclick = () => openEditModal(agendamento.id);
+                    buttonsDiv.appendChild(alterButton);
+                    
+                    const cardInfoHtml = document.createElement('div');
+                    cardInfoHtml.innerHTML = `
+                        <div class="agendamento-header">
+                            <span class="agendamento-cliente">${agendamento.cliente}</span>
+                            <span class="agendamento-data">${agendamento.hora}</span>
                         </div>
+                        <div class="agendamento-info">
+                            <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
+                                <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo, e se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </div>
+                            <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
+                            <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
+                        </div>
+                        ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                     `;
+
+                    card.appendChild(cardInfoHtml);
+                    card.appendChild(buttonsDiv);
+                    
+                    diaContainer.appendChild(card);
                 });
                 
-                diaContainer.innerHTML = htmlDia;
                 agendamentosList.appendChild(diaContainer);
             });
         }
         
-        // Nova função para filtrar os agendamentos
-        function filterAgendamentos(query) {
-            const normalizedQuery = query.toLowerCase().trim();
-            if (normalizedQuery === '') {
-                renderAgendamentos(allAppointments);
-                return;
-            }
+        const STATUSES = [
+            { text: 'Aguardando Montar', value: 'aguardando-montar', class: 'aguardando-montar' },
+            { text: 'Barra', value: 'barra', class: 'barra' },
+            { text: 'Costura', value: 'costura', class: 'costura' },
+            { text: 'Passar', value: 'passar', class: 'passar' },
+            { text: 'Traje Pronto', value: 'traje-pronto', class: 'traje-pronto' }
+        ];
+
+        function createStatusButton(currentStatus, id) {
+            const button = document.createElement('button');
             
-            const filteredAppointments = allAppointments.filter(agendamento => {
-                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
+            const currentStatusObject = STATUSES.find(s => s.value === currentStatus) || { text: 'Aguardando Montar', value: 'aguardando-montar', class: 'aguardando-montar' };
+            let currentIndex = STATUSES.indexOf(currentStatusObject);
+
+            button.textContent = currentStatusObject.text;
+            button.classList.add('status', currentStatusObject.class);
+
+            button.addEventListener('click', async (event) => {
+                event.stopPropagation();
+                
+                currentIndex = (currentIndex + 1) % STATUSES.length;
+                const nextStatusObject = STATUSES[currentIndex];
+                
+                try {
+                    await db.collection('agendamentos').doc(id).update({ status: nextStatusObject.value });
+                } catch (error) {
+                    console.error("Erro ao atualizar status:", error);
+                    showMessage(`Erro ao atualizar status: ${error.message}`, 'error');
+                }
             });
-            
-            renderAgendamentos(filteredAppointments);
+            return button;
         }
 
-        // Função para cancelar agendamento
+        function filterAgendamentos(query) {
+            const normalizedQuery = query.toLowerCase().trim();
+            const filteredAppointments = nonConcludedAppointments.filter(agendamento => {
+                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
+            });
+            renderAgendamentos(filteredAppointments, 'agendamentos-list', false);
+        }
+        
+        function filterConcluidos(query) {
+            const normalizedQuery = query.toLowerCase().trim();
+            const filteredAppointments = concludedAppointments.filter(agendamento => {
+                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
+            });
+            renderAgendamentos(filteredAppointments, 'concluidos-list', true);
+        }
+
         async function cancelAgendamento(id) {
-            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+            if (!confirm('Tem certeza que deseja apagar permanentemente este agendamento?')) {
                 return;
             }
             if (!db) {
@@ -1609,16 +1754,14 @@
                 return;
             }
             try {
-                await db.collection('agendamentos').doc(id).update({ status: 'cancelado' });
-                showMessage('Agendamento cancelado com sucesso!', 'success');
-                loadAgendamentos();
+                await db.collection('agendamentos').doc(id).delete();
+                showMessage('Agendamento cancelado e removido com sucesso!', 'success');
             } catch (error) {
                 console.error("Erro ao cancelar agendamento:", error);
                 showMessage(`Erro ao cancelar agendamento: ${error.message}`, 'error');
             }
         }
 
-        // Função para concluir agendamento
         async function completeAgendamento(id) {
             if (!confirm('Tem certeza que deseja marcar este agendamento como concluído?')) {
                 return;
@@ -1630,7 +1773,6 @@
             try {
                 await db.collection('agendamentos').doc(id).update({ status: 'concluido' });
                 showMessage('Agendamento concluído com sucesso!', 'success');
-                loadAgendamentos();
             } catch (error) {
                 console.error("Erro ao concluir agendamento:", error);
                 showMessage(`Erro ao concluir agendamento: ${error.message}`, 'error');
