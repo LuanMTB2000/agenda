@@ -362,15 +362,17 @@
             gap: 10px;
             margin-top: 20px;
         }
-        
-        .status.agendado { background-color: #60a5fa; }
-        .status.aguardando-montar { background-color: #8B0000; }
+
+        .status.aguardando-montagem { background-color: #8B0000; }
         .status.traje-pronto { background-color: #228B22; }
-        .status.barra { background-color: #800080; }
-        .status.passar { background-color: #89CFF0; }
-        .status.costura { background-color: #800080; }
+        .status.barra { background-color: #3f51b5; }
+        .status.costura { background-color: #ff9800; }
+        .status.passacao { background-color: #9c27b0; }
         .status.lavando { background-color: #607d8b; }
+        .status.agendado { background-color: #60a5fa; }
         .status.concluido { background-color: #34d399; }
+        .status.cancelado { background-color: #f87171; }
+
 
         .agendamento-card {
             background: white;
@@ -907,8 +909,15 @@
         let concludedAppointments = [];
         let nonConcludedAppointments = [];
 
-        const STATUSES = [\n            { text: \'Aguardando Montagem\', value: \'aguardando-montagem\', class: \'aguardando-montagem\' },\n            { text: \'Barra\', value: \'barra\', class: \'barra\' },\n            { text: \'Costura\', value: \'costura\', class: \'costura\' },\n            { text: \'Passação\', value: \'passacao\', class: \'passacao\' },\n            { text: \'Lavando\', value: \'lavando\', class: \'lavando\' },\n            { text: \'Traje Pronto\', value: \'traje-pronto\', class: \'traje-pronto\' }\n        ];
-        
+        const STATUSES = [
+            { text: 'Aguardando Montagem', value: 'aguardando-montagem', class: 'aguardando-montagem' },
+            { text: 'Barra', value: 'barra', class: 'barra' },
+            { text: 'Costura', value: 'costura', class: 'costura' },
+            { text: 'Passação', value: 'passacao', class: 'passacao' },
+            { text: 'Lavando', value: 'lavando', class: 'lavando' },
+            { text: 'Traje Pronto', value: 'traje-pronto', class: 'traje-pronto' }
+        ];
+
         const NOW_DATE_GLOBAL = new Date(); 
         NOW_DATE_GLOBAL.setSeconds(0, 0); 
 
@@ -1533,7 +1542,7 @@
                     y = 20;
                 }
 
-                doc.text(`- Cliente: ${agendamento.cliente} | Horário: ${agendamento.hora}`, 15, y);
+                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
                 y += 10;
             });
 
@@ -1627,7 +1636,7 @@
                     <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
                     <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
                     <div class="btn-group">
-                      <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                        <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
                     </div>
                 `;
                 diaContainer.appendChild(headerHtml);
@@ -1678,7 +1687,7 @@
                         </div>
                         <div class="agendamento-info">
                             <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
-                                <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo, e se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
+                                <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
                                     <i class="fab fa-whatsapp"></i>
                                 </a>
                             </div>
@@ -1699,20 +1708,22 @@
         }
         
         const STATUSES = [
-            { text: 'Aguardando Montar', value: 'aguardando-montar', class: 'aguardando-montar' },
+            { text: 'Aguardando Montagem', value: 'aguardando-montagem', class: 'aguardando-montagem' },
             { text: 'Barra', value: 'barra', class: 'barra' },
             { text: 'Costura', value: 'costura', class: 'costura' },
-            { text: 'Passar', value: 'passar', class: 'passar' },
+            { text: 'Passação', value: 'passacao', class: 'passacao' },
+            { text: 'Lavando', value: 'lavando', class: 'lavando' },
             { text: 'Traje Pronto', value: 'traje-pronto', class: 'traje-pronto' }
         ];
 
         function createStatusButton(currentStatus, id) {
             const button = document.createElement('button');
-            const currentStatusObject = STATUSES.find(s => s.value === currentStatus) || STATUSES[0];
+            
+            const currentStatusObject = STATUSES.find(s => s.value === currentStatus) || { text: 'Aguardando Montagem', value: 'aguardando-montagem', class: 'aguardando-montagem' };
             let currentIndex = STATUSES.indexOf(currentStatusObject);
 
             button.textContent = currentStatusObject.text;
-            button.classList.add('status-btn', currentStatusObject.class);
+            button.classList.add('status', currentStatusObject.class);
 
             button.addEventListener('click', async (event) => {
                 event.stopPropagation();
