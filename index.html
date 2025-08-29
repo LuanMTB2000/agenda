@@ -631,38 +631,6 @@
             color: #dc2626;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 16px;
-            }
-
-            .header {
-                padding: 30px 20px;
-            }
-
-            .content {
-                padding: 25px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .agendamento-info {
-                grid-template-columns: 1fr;
-            }
-
-            .time-slots {
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-                gap: 8px;
-            }
-
-            .day-selector {
-                justify-content: center;
-            }
-        }
-
         /* Estilos para a modal de edição */
         .modal {
             display: none;
@@ -710,6 +678,112 @@
 
         #editTimeSlots {
             margin-top: 15px;
+        }
+        
+        /* Adicione estas novas regras ou ajuste as existentes */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                margin: 0;
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .tab {
+                flex-basis: 50%;
+                font-size: 14px;
+                padding: 15px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .list-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .list-header h2 {
+                margin-bottom: 0;
+                font-size: 1.3em;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .agendamento-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .agendamento-data {
+                font-size: 12px;
+            }
+
+            .agendamento-info {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .agendamentos-dia h3 {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                font-size: 1.2em;
+            }
+
+            .agendamentos-dia h3 .btn-group {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .btn-download-pdf {
+                flex-grow: 1;
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 8px;
+            }
+
+            .day-selector {
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .day-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -935,11 +1009,11 @@
         let editCalendarDate = new Date();
         let currentCalendarDate = new Date();
         let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
-        let concluidedAppointments = [];
+        let concludedAppointments = [];
         let nonConcludedAppointments = [];
 
         // Constante global para a data/hora atual (usada para horários passados)
-        const NOW_DATE_GLOBAL = new Date(); 
+        const NOW_DATE_GLOBAL = new Date();
         NOW_DATE_GLOBAL.setSeconds(0, 0); // Zera segundos e milissegundos para precisão da meia hora
 
         // Horários de funcionamento
@@ -950,7 +1024,7 @@
         };
         
         const MAX_APPOINTMENTS_PER_HOUR = 4;
-        const MAX_APPOINTMENTS_SATURDAY = 1; 
+        const MAX_APPOINTMENTS_SATURDAY = 1;
         
         // Feriados a serem removidos
         const HOLIDAYS = ['2025-08-15'];
@@ -993,15 +1067,15 @@
             if (tabName === 'lista' || tabName === 'concluidos') {
                 loadAgendamentos();
             } else if (tabName === 'novo') {
-                currentCalendarDate = new Date(); 
-                generateDaySelector(); 
+                currentCalendarDate = new Date();
+                generateDaySelector();
             }
         }
 
         // Carregar configuração ao iniciar
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
-            showTab('novo'); 
+            showTab('novo');
             document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
         });
 
@@ -1035,8 +1109,8 @@
                 currentCalendarDate.setDate(1);
             }
 
-            selectedDate = null; 
-            generateDaySelector(); 
+            selectedDate = null;
+            generateDaySelector();
         }
 
         // Função para gerar seletor de dias
@@ -1134,7 +1208,7 @@
                 const existingAppointments = {};
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.status === 'agendado') { 
+                    if (data.status === 'agendado') {
                         if (existingAppointments[data.hora]) {
                             existingAppointments[data.hora]++;
                         } else {
@@ -1532,8 +1606,8 @@
                 selectedDate = null;
                 selectedTime = null;
                 document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
-                currentCalendarDate = new Date(); 
-                generateDaySelector(); 
+                currentCalendarDate = new Date();
+                generateDaySelector();
             } catch (error) {
                 console.error("Erro ao adicionar agendamento:", error);
                 showMessage(`Erro ao agendar: ${error.message}`, 'error');
