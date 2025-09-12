@@ -1663,20 +1663,29 @@ function loadAgendamentos() {
 
     document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
     document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
-    document.getElementById('search-input').value = '';
-    document.getElementById('search-input-concluidos').value = '';
+    const searchMain = document.getElementById('search-input');
+    const searchDone = document.getElementById('search-input-concluidos');
+    if (searchMain) searchMain.value = '';
+    if (searchDone) searchDone.value = '';
 
     try {
-        db.collection('agendamentos')
+        // Evita acumular múltiplos listeners
+        if (typeof unsubscribeAgendamentos === 'function') {
+            unsubscribeAgendamentos();
+            unsubscribeAgendamentos = null;
+        }
+
+        unsubscribeAgendamentos = db.collection('agendamentos')
             .orderBy('timestamp', 'desc')
             .onSnapshot(snapshot => {
-                allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                const all = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
-                // Mantém apenas FUTUROS
-                const futureAppointments = allAppointments.filter(isFutureAppointment);
+                // Mantém só FUTUROS
+                const futureAppointments = all.filter(isFutureAppointment);
 
-                nonConcludedAppointments = futureAppointments.filter(a => a.status !== 'concluido');
-                concludedAppointments = futureAppointments.filter(a => a.status === 'concluido');
+                // Se ainda quiser separar concluídos, mantém:
+                nonConcludedAppointments = futureAppointments.filter(a => a.status !== 'concluido' && a.status !== 'cancelado');
+                concludedAppointments     = futureAppointments.filter(a => a.status === 'concluido');
 
                 renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
                 renderAgendamentos(concludedAppointments, 'concluidos-list', true);
@@ -1688,89 +1697,12 @@ function loadAgendamentos() {
             });
 
     } catch (error) {
-        console.error("Erro ao carregar agendamentos:", error);
+        console.error("Erro ao configurar listener de agendamentos:", error);
         document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
         document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
     }
 }
 
-        // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
-        function loadAgendamentos() {
-            if (!db || !isConfigured) {
-                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
-                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
-                return;
-            }
-            
-            document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
-            document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
-            document.getElementById('search-input').value = '';
-            document.getElementById('search-input-concluidos').value = '';
-
-            try {
-                db.collection('agendamentos')
-                    .orderBy('timestamp', 'desc')
-                    .onSnapshot(snapshot => {
-                        allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                        
-                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido');
-                        concludedAppointments = allAppointments.filter(a => a.status === 'concluido');
-
-                        renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
-                        renderAgendamentos(concludedAppointments, 'concluidos-list', true);
-
-                    }, error => {
-                        console.error("Erro ao carregar agendamentos:", error);
-                        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                    });
-
-            } catch (error) {
-                console.error("Erro ao carregar agendamentos:", error);
-                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-            }
-        }
-        
-        // Função para renderizar os agendamentos na tela
-        function renderAgendamentos(agendamentosToRender, listId, isConcludedList = false) {
-            const agendamentosList = document.getElementById(listId);
-            agendamentosList.innerHTML = '';
-            
-            if (agendamentosToRender.length === 0) {
-                agendamentosList.innerHTML = `<div class="loading">Nenhum agendamento encontrado.</div>`;
-                return;
-            }
-
-            const agendamentosPorDia = {};
-            agendamentosToRender.forEach(agendamento => {
-                const data = agendamento.data;
-                if (!agendamentosPorDia[data]) {
-                    agendamentosPorDia[data] = [];
-                }
-                agendamentosPorDia[data].push(agendamento);
-            });
-            
-            const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => {
-                const dateA = new Date(a);
-                const dateB = new Date(b);
-                
-                if (isConcludedList) {
-                    return dateB - dateA; // Para concluídos, ordena da mais recente para a mais antiga
-                } else {
-                    return dateA - dateB; // Para não-concluídos, ordena da mais antiga para a mais recente
-                }
-            });
-            
-            datasOrdenadas.forEach(data => {
-                const agendamentosDoDia = agendamentosPorDia[data];
-                agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
-                
-                const trajesCount = agendamentosDoDia.filter(a => DRESS_SERVICES.includes(a.servico)).length;
-
-                const diaContainer = document.createElement('div');
-                diaContainer.classList.add('agendamentos-dia');
-                
                 let htmlDia = `
                     <h3>
                         <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
