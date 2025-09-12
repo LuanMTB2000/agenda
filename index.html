@@ -27,7 +27,7 @@
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(226, 232, 240, 0.2);
         }
 
         .header {
@@ -342,37 +342,6 @@
             font-size: 14px;
             margin: 0;
         }
-        .status-btn {
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            text-transform: uppercase;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-        .agendamento-card-buttons {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .status.agendado { background-color: #60a5fa; }
-        .status.aguardando-montar { background-color: #8B0000; }
-        .status.traje-pronto { background-color: #228B22; }
-        .status.barra { background-color: #800080; }
-        .status.passar { background-color: #89CFF0; }
-        .status.costura { background-color: #800080; }
-        .status.lavando { background-color: #607d8b; }
-        .status.concluido { background-color: #34d399; }
-        .status.cancelado { background-color: #f87171; }
-
 
         .agendamento-card {
             background: white;
@@ -450,12 +419,6 @@
             font-size: 0.9em;
             font-weight: 600;
         }
-
-        .agendamentos-dia h3 .btn-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
         
         .btn-download-pdf {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -473,17 +436,6 @@
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             transform: translateY(-2px);
         }
-        
-        .whatsapp-icon {
-            color: #25D366;
-            margin-left: 10px;
-            font-size: 20px;
-            text-decoration: none;
-        }
-        .whatsapp-icon:hover {
-            transform: scale(1.1);
-            transition: transform 0.2s;
-        }
 
         .agendamento-info {
             display: grid;
@@ -498,6 +450,9 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .info-item a.whatsapp-icon {
+            font-size: 18px;
         }
 
         .info-item strong {
@@ -637,6 +592,55 @@
                 justify-content: center;
             }
         }
+
+        /* Estilos para a modal de edição */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            color: black;
+        }
+
+        #editTimeSlots {
+            margin-top: 15px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -680,10 +684,6 @@
                                     <option value="Ana">Ana</option>
                                     <option value="Vitória">Vitória</option>
                                     <option value="Luiz Pedro">Luiz Pedro</option>
-                                    <option value="Lorrayne">Lorrayne</option>
-                                    <option value="Maykol">Maykol</option>
-                                    <option value="Fillipy">Fillipy</option>
-                                    <option value="Renato">Renato</option>
                                     <option value="Carol">Carol</option>
                                     <option value="Augusto">Augusto</option>
                                 </select>
@@ -695,19 +695,9 @@
                                     <option value="">Selecione o serviço</option>
                                     <option value="Atendimento">Atendimento</option>
                                     <option value="Prova">Prova</option>
-                                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
-                                    <option value="Retirada Vestido">Retirada Vestido</option>
                                 </select>
                             </div>
 
-                            <div class="form-group full-width">
-                                <label>📅 Selecione o Mês e Ano</label>
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(-1)">&#9664; Anterior</button>
-                                    <span id="currentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
-                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(1)">Próximo &#9654;</button>
-                                </div>
-                            </div>
                             <div class="form-group full-width">
                                 <label>📅 Selecione o Dia</label>
                                 <div class="day-selector" id="daySelector">
@@ -734,13 +724,7 @@
 
             <div id="lista-tab" class="hidden">
                 <div class="form-section">
-                    <div class="list-header">
-                        <h2>📋 Lista de Agendamentos</h2>
-                        <div class="search-container">
-                            <input type="text" id="search-input" placeholder="Pesquisar por cliente..." oninput="filterAgendamentos(this.value)">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        </div>
-                    </div>
+                    <h2>📋 Lista de Agendamentos</h2>
                     <div id="agendamentos-list">
                         <div class="loading">Carregando agendamentos...</div>
                     </div>
@@ -1503,7 +1487,7 @@
                             </div>
                             <div class="agendamento-info">
                                 <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
-                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo, e se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
+                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
                                         <i class="fab fa-whatsapp"></i>
                                     </a>
                                 </div>
