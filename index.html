@@ -1,3515 +1,1583 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>MrJack - Sistema de Agendamentos</title>
-
-    <style>
-
-        /* Estilos CSS (inalterados do seu código original) */
-
-        * {
-
-            margin: 0;
-
-            padding: 0;
-
-            box-sizing: border-box;
-
-        }
-
-
-
-        body {
-
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-            background-color: #000; /* Alterado para preto */
-
-            min-height: 100vh;
-
-            padding: 20px;
-
-        }
-
-
-
-        .container {
-
-            max-width: 900px;
-
-            margin: 0 auto;
-
-            background: rgba(255, 255, 255, 0.95);
-
-            backdrop-filter: blur(20px);
-
-            border-radius: 24px;
-
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-
-            overflow: hidden;
-
-            border: 1px solid rgba(255, 255, 240, 0.2);
-
-        }
-
-
-
-        .header {
-
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-
-            color: white;
-
-            padding: 40px 30px;
-
-            text-align: center;
-
-            position: relative;
-
-            overflow: hidden;
-
-        }
-
-
-
-        .header::before {
-
-            content: '';
-
-            position: absolute;
-
-            top: 0;
-
-            left: 0;
-
-            right: 0;
-
-            bottom: 0;
-
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dc2626' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-
-            animation: float 20s ease-in-out infinite;
-
-        }
-
-
-
-        @keyframes float {
-
-            0%, 100% { transform: translateY(0px); }
-
-            50% { transform: translateY(-10px); }
-
-        }
-
-
-
-        .header h1 {
-
-            font-size: 2.2em;
-
-            margin-bottom: 8px;
-
-            font-weight: 700;
-
-            position: relative;
-
-            z-index: 2;
-
-        }
-
-
-
-        .header p {
-
-            font-size: 1.1em;
-
-            color: #dc2626;
-
-            font-weight: 600;
-
-            position: relative;
-
-            z-index: 2;
-
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-
-        }
-
-
-
-        .tabs {
-
-            display: flex;
-
-            background: rgba(248, 250, 252, 0.8);
-
-            backdrop-filter: blur(10px);
-
-        }
-
-
-
-        .tab {
-
-            flex: 1;
-
-            padding: 18px;
-
-            text-align: center;
-
-            cursor: pointer;
-
-            border: none;
-
-            background: none;
-
-            font-size: 16px;
-
-            font-weight: 600;
-
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-            color: #64748b;
-
-            position: relative;
-
-        }
-
-
-
-        .tab::after {
-
-            content: '';
-
-            position: absolute;
-
-            bottom: 0;
-
-            left: 50%;
-
-            width: 0;
-
-            height: 3px;
-
-            background: linear-gradient(90deg, #dc2626, #ef4444);
-
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-            transform: translateX(-50%);
-
-            border-radius: 2px;
-
-        }
-
-
-
-        .tab.active {
-
-            color: #dc2626;
-
-            background: rgba(220, 38, 38, 0.05);
-
-        }
-
-
-
-        .tab.active::after {
-
-            width: 60%;
-
-        }
-
-
-
-        .tab:hover:not(.active) {
-
-            background: rgba(100, 116, 139, 0.05);
-
-            transform: translateY(-2px);
-
-        }
-
-
-
-        .content {
-
-            padding: 40px;
-
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-
-            min-height: 500px;
-
-        }
-
-
-
-        .form-section {
-
-            background: white;
-
-            border-radius: 16px;
-
-            padding: 30px;
-
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-
-            border: 1px solid rgba(226, 232, 240, 0.5);
-
-            margin-bottom: 20px;
-
-        }
-
-
-
-        .form-section h2 {
-
-            color: #1e293b;
-
-            margin-bottom: 25px;
-
-            font-size: 1.5em;
-
-            font-weight: 700;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-        }
-
-        
-
-        .list-header {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            margin-bottom: 25px;
-
-            gap: 10px;
-
-        }
-
-        
-
-        .list-header h2 {
-
-            margin: 0;
-
-            margin-bottom: 0px;
-
-        }
-
-
-
-        .search-container {
-
-            position: relative;
-
-            flex-grow: 1;
-
-            max-width: 350px;
-
-        }
-
-
-
-        .search-container input {
-
-            width: 100%;
-
-            padding: 12px 12px 12px 40px;
-
-            border: 2px solid #e5e7eb;
-
-            border-radius: 12px;
-
-            font-size: 16px;
-
-            transition: all 0.3s;
-
-        }
-
-
-
-        .search-container input:focus {
-
-            outline: none;
-
-            border-color: #dc2626;
-
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
-
-        }
-
-        
-
-        .search-container svg {
-
-            position: absolute;
-
-            left: 12px;
-
-            top: 50%;
-
-            transform: translateY(-50%);
-
-            color: #9ca3af;
-
-        }
-
-
-
-
-
-        .form-grid {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 20px;
-
-        }
-
-
-
-        .form-group {
-
-            margin-bottom: 20px;
-
-        }
-
-
-
-        .form-group.full-width {
-
-            grid-column: 1 / -1;
-
-        }
-
-
-
-        .form-group label {
-
-            display: block;
-
-            margin-bottom: 8px;
-
-            font-weight: 600;
-
-            color: #374151;
-
-            font-size: 14px;
-
-            text-transform: uppercase;
-
-            letter-spacing: 0.5px;
-
-        }
-
-
-
-        .form-group input,
-
-        .form-group select,
-
-        .form-group textarea {
-
-            width: 100%;
-
-            padding: 14px 16px;
-
-            border: 2px solid #e5e7eb;
-
-            border-radius: 12px;
-
-            font-size: 16px;
-
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            background: #fff;
-
-            color: #1f2937;
-
-        }
-
-
-
-        .form-group input:focus,
-
-        .form-group select:focus,
-
-        .form-group textarea:focus {
-
-            outline: none;
-
-            border-color: #dc2626;
-
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
-
-            transform: translateY(-2px);
-
-        }
-
-
-
-        .time-slots {
-
-            display: grid;
-
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-
-            gap: 12px;
-
-            margin-top: 15px;
-
-        }
-
-
-
-        .time-slot {
-
-            background: white;
-
-            border: 2px solid #e5e7eb;
-
-            border-radius: 12px;
-
-            padding: 12px;
-
-            text-align: center;
-
-            cursor: pointer;
-
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            position: relative;
-
-            font-weight: 600;
-
-        }
-
-
-
-        .time-slot:hover {
-
-            border-color: #dc2626;
-
-            transform: translateY(-2px);
-
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
-
-        }
-
-
-
-        .time-slot.selected {
-
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-
-            color: white;
-
-            border-color: #dc2626;
-
-            transform: translateY(-2px);
-
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
-
-        }
-
-
-
-        .time-slot.unavailable {
-
-            background: #f3f4f6;
-
-            color: #9ca3af;
-
-            cursor: not-allowed;
-
-            border-color: #e5e7eb;
-
-        }
-
-
-
-        .time-slot.unavailable:hover {
-
-            transform: none;
-
-            box-shadow: none;
-
-            border-color: #e5e7eb;
-
-        }
-
-
-
-        .availability-badge {
-
-            position: absolute;
-
-            top: -8px;
-
-            right: -8px;
-
-            background: #10b981;
-
-            color: white;
-
-            border-radius: 50%;
-
-            width: 20px;
-
-            height: 20px;
-
-            font-size: 11px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-weight: bold;
-
-        }
-
-
-
-        .availability-badge.low {
-
-            background: #f59e0b;
-
-        }
-
-
-
-        .availability-badge.full {
-
-            background: #ef4444;
-
-        }
-
-
-
-        .btn {
-
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-
-            color: white;
-
-            padding: 16px 32px;
-
-            border: none;
-
-            border-radius: 12px;
-
-            font-size: 16px;
-
-            font-weight: 600;
-
-            cursor: pointer;
-
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            width: 100%;
-
-            margin-top: 20px;
-
-            text-transform: uppercase;
-
-            letter-spacing: 0.5px;
-
-        }
-
-
-
-        .btn:hover {
-
-            transform: translateY(-3px);
-
-            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
-
-        }
-
-
-
-        .btn:active {
-
-            transform: translateY(-1px);
-
-        }
-
-
-
-        .btn-danger {
-
-            background: linear-gradient(135deg, #ef4444, #f87171);
-
-            width: auto;
-
-            padding: 8px 16px;
-
-            font-size: 14px;
-
-            margin: 0;
-
-        }
-
-        .btn-alterar {
-
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
-
-            width: auto;
-
-            padding: 8px 16px;
-
-            font-size: 14px;
-
-            margin: 0;
-
-        }
-
-
-
-        .agendamento-card {
-
-            background: white;
-
-            border-radius: 16px;
-
-            padding: 25px;
-
-            margin-bottom: 20px;
-
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-            border: 1px solid rgba(226, 232, 240, 0.5);
-
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            position: relative;
-
-            overflow: hidden;
-
-        }
-
-
-
-        .agendamento-card::before {
-
-            content: '';
-
-            position: absolute;
-
-            top: 0;
-
-            left: 0;
-
-            width: 4px;
-
-            height: 100%;
-
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-
-        }
-
-
-
-        .agendamento-card:hover {
-
-            transform: translateY(-4px);
-
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-
-        }
-
-
-
-        .agendamento-header {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            margin-bottom: 15px;
-
-        }
-
-
-
-        .agendamento-cliente {
-
-            font-size: 1.3em;
-
-            font-weight: 700;
-
-            color: #1e293b;
-
-        }
-
-
-
-        .agendamento-data {
-
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-
-            color: white;
-
-            padding: 8px 16px;
-
-            border-radius: 20px;
-
-            font-size: 14px;
-
-            font-weight: 600;
-
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-
-        }
-
-        
-
-        .agendamentos-dia {
-
-            background-color: #f1f5f9;
-
-            border-radius: 16px;
-
-            padding: 20px;
-
-            margin-bottom: 30px;
-
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-
-        }
-
-        
-
-        .agendamentos-dia h3 {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            font-size: 1.4em;
-
-            color: #1e293b;
-
-            margin-bottom: 20px;
-
-        }
-
-
-
-        .agendamentos-dia h3 .trajes-count {
-
-            display: inline-block;
-
-            background: linear-gradient(135deg, #10b981, #34d399);
-
-            color: white;
-
-            padding: 6px 12px;
-
-            border-radius: 20px;
-
-            font-size: 0.9em;
-
-            font-weight: 600;
-
-        }
-
-
-
-        .agendamentos-dia h3 .btn-group {
-
-            display: flex;
-
-            gap: 10px;
-
-            align-items: center;
-
-        }
-
-        
-
-        .btn-download-pdf {
-
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-
-            color: white;
-
-            padding: 8px 16px;
-
-            border: none;
-
-            border-radius: 12px;
-
-            font-size: 14px;
-
-            font-weight: 600;
-
-            cursor: pointer;
-
-            transition: all 0.3s;
-
-        }
-
-        
-
-        .btn-download-pdf:hover {
-
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
-
-            transform: translateY(-2px);
-
-        }
-
-        
-
-        .whatsapp-icon {
-
-            color: #25D366;
-
-            margin-left: 10px;
-
-            font-size: 20px;
-
-            text-decoration: none;
-
-        }
-
-        .whatsapp-icon:hover {
-
-            transform: scale(1.1);
-
-            transition: transform 0.2s;
-
-        }
-
-
-
-        .agendamento-info {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 15px;
-
-            margin: 15px 0;
-
-        }
-
-
-
-        .info-item {
-
-            font-size: 14px;
-
-            color: #64748b;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-        }
-
-
-
-        .info-item strong {
-
-            color: #374151;
-
-        }
-
-
-
-        .status {
-
-            display: inline-flex;
-
-            align-items: center;
-
-            padding: 6px 14px;
-
-            border-radius: 20px;
-
-            font-size: 12px;
-
-            font-weight: 600;
-
-            text-transform: uppercase;
-
-            letter-spacing: 0.5px;
-
-        }
-
-
-
-        .status.agendado {
-
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
-
-            color: white;
-
-        }
-
-        
-
-        .status.aguardando-montagem {
-
-            background-color: #8B0000; /* Vermelho Sangue */
-
-            color: white;
-
-        }
-
-
-
-        .status.traje-pronto {
-
-            background-color: #228B22; /* Verde */
-
-            color: white;
-
-        }
-
-
-
-        .status.barra {
-
-            background-color: #3f51b5; /* Azul */
-
-            color: white;
-
-        }
-
-
-
-        .status.costura {
-
-            background-color: #ff9800; /* Laranja */
-
-            color: white;
-
-        }
-
-        
-
-        .status.passacao {
-
-            background-color: #9c27b0; /* Roxo */
-
-            color: white;
-
-        }
-
-
-
-        .status.lavando {
-
-            background-color: #607d8b; /* Cinza Chumbo */
-
-            color: white;
-
-        }
-
-
-
-        .status.concluido {
-
-            background: linear-gradient(135deg, #10b981, #34d399);
-
-            color: white;
-
-        }
-
-
-
-        .status.cancelado {
-
-            background: linear-gradient(135deg, #ef4444, #f87171);
-
-            color: white;
-
-        }
-
-
-
-        .loading {
-
-            text-align: center;
-
-            padding: 60px;
-
-            color: #64748b;
-
-            font-size: 18px;
-
-        }
-
-
-
-        @keyframes spin {
-
-            0% { transform: rotate(0deg); }
-
-            100% { transform: rotate(360deg); }
-
-        }
-
-
-
-        .error, .success {
-
-            padding: 20px;
-
-            border-radius: 12px;
-
-            margin-bottom: 20px;
-
-            font-weight: 600;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-        }
-
-
-
-        .error {
-
-            background: linear-gradient(135deg, #fef2f2, #fee2e2);
-
-            color: #dc2626;
-
-            border: 2px solid #fecaca;
-
-        }
-
-
-
-        .success {
-
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-
-            color: #16a34a;
-
-            border: 2px solid #bbf7d0;
-
-        }
-
-
-
-        .config-section {
-
-            background: white;
-
-            border-radius: 16px;
-
-            padding: 30px;
-
-            margin-bottom: 25px;
-
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-
-            border: 1px solid rgba(226, 232, 240, 0.5);
-
-        }
-
-
-
-        .config-section h3 {
-
-            color: #1e293b;
-
-            margin-bottom: 20px;
-
-            font-size: 1.2em;
-
-            font-weight: 700;
-
-        }
-
-
-
-        .setup-instructions {
-
-            background: linear-gradient(135deg, #eff6ff, #dbeafe);
-
-            border-left: 4px solid #3b82f6;
-
-            padding: 25px;
-
-            margin-bottom: 25px;
-
-            border-radius: 12px;
-
-        }
-
-
-
-        .setup-instructions h3 {
-
-            color: #1e40af;
-
-            margin-bottom: 15px;
-
-        }
-
-
-
-        .setup-instructions p,
-
-        .setup-instructions ol,
-
-        .setup-instructions li {
-
-            color: #1e3a8a;
-
-        }
-
-
-
-        .hidden {
-
-            display: none;
-
-        }
-
-
-
-        .day-selector {
-
-            display: flex;
-
-            gap: 10px;
-
-            margin-bottom: 20px;
-
-            flex-wrap: wrap;
-
-        }
-
-
-
-        .day-btn {
-
-            padding: 10px 20px;
-
-            border: 2px solid #e5e7eb;
-
-            background: white;
-
-            border-radius: 10px;
-
-            cursor: pointer;
-
-            font-weight: 600;
-
-            transition: all 0.3s;
-
-            color: #64748b;
-
-        }
-
-
-
-        .day-btn.active {
-
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-
-            color: white;
-
-            border-color: #dc2626;
-
-        }
-
-
-
-        .day-btn:hover:not(.active) {
-
-            border-color: #dc2626;
-
-            color: #dc2626;
-
-        }
-
-
-
-        @media (max-width: 768px) {
-
-            .container {
-
-                margin: 10px;
-
-                border-radius: 16px;
-
-            }
-
-
-
-            .header {
-
-                padding: 30px 20px;
-
-            }
-
-
-
-            .content {
-
-                padding: 25px;
-
-            }
-
-
-
-            .form-grid {
-
-                grid-template-columns: 1fr;
-
-            }
-
-
-
-            .agendamento-info {
-
-                grid-template-columns: 1fr;
-
-            }
-
-
-
-            .time-slots {
-
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-
-                gap: 8px;
-
-            }
-
-
-
-            .day-selector {
-
-                justify-content: center;
-
-            }
-
-        }
-
-
-
-        /* Estilos para a modal de edição */
-
-        .modal {
-
-            display: none;
-
-            position: fixed;
-
-            z-index: 1000;
-
-            left: 0;
-
-            top: 0;
-
-            width: 100%;
-
-            height: 100%;
-
-            overflow: auto;
-
-            background-color: rgba(0, 0, 0, 0.6);
-
-            justify-content: center;
-
-            align-items: center;
-
-        }
-
-
-
-        .modal-content {
-
-            background-color: #fefefe;
-
-            padding: 20px;
-
-            border-radius: 12px;
-
-            width: 90%;
-
-            max-width: 500px;
-
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-
-            position: relative;
-
-        }
-
-
-
-        .modal-content h3 {
-
-            margin-top: 0;
-
-            margin-bottom: 20px;
-
-            color: #1e293b;
-
-        }
-
-
-
-        .close-button {
-
-            color: #aaa;
-
-            position: absolute;
-
-            top: 10px;
-
-            right: 20px;
-
-            font-size: 28px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-        }
-
-
-
-        .close-button:hover {
-
-            color: black;
-
-        }
-
-
-
-        #editTimeSlots {
-
-            margin-top: 15px;
-
-        }
-
-    </style>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MrJack - Sistema de Agendamentos</title>
+    <style>
+        /* Estilos CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #000;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dc2626' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #dc2626;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #64748b;
+            position: relative;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #dc2626, #ef4444);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .tab.active {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.05);
+        }
+
+        .tab.active::after {
+            width: 60%;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(100, 116, 139, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 40px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 500px;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .form-section h2 {
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        
+        .list-header h2 {
+            margin: 0;
+            margin-bottom: 0px;
+        }
+
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 350px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+        
+        .search-container svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fff;
+            color: #1f2937;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .time-slot {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            font-weight: 600;
+        }
+
+        .time-slot:hover {
+            border-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+        }
+
+        .time-slot.selected {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            border-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .time-slot.unavailable {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+            border-color: #e5e7eb;
+        }
+
+        .time-slot.unavailable:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: #e5e7eb;
+        }
+
+        .availability-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .availability-badge.low {
+            background: #f59e0b;
+        }
+
+        .availability-badge.full {
+            background: #ef4444;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            width: auto;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 0;
+        }
+        .btn-alterar {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            width: auto;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 0;
+        }
+        .status-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .agendamento-card-buttons {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .status.agendado { background-color: #60a5fa; }
+        .status.aguardando-montar { background-color: #8B0000; }
+        .status.traje-pronto { background-color: #228B22; }
+        .status.barra { background-color: #800080; }
+        .status.passar { background-color: #89CFF0; }
+        .status.costura { background-color: #800080; }
+        .status.lavando { background-color: #607d8b; }
+        .status.concluido { background-color: #34d399; }
+        .status.cancelado { background-color: #f87171; }
+
+
+        .agendamento-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agendamento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .agendamento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .agendamento-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .agendamento-cliente {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .agendamento-data {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+        
+        .agendamentos-dia {
+            background-color: #f1f5f9;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .agendamentos-dia h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.4em;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .agendamentos-dia h3 .trajes-count {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .agendamentos-dia h3 .btn-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn-download-pdf {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-download-pdf:hover {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            transform: translateY(-2px);
+        }
+        
+        .whatsapp-icon {
+            color: #25D366;
+            margin-left: 10px;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .whatsapp-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
+
+        .agendamento-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .info-item {
+            font-size: 14px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-item strong {
+            color: #374151;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+            font-size: 18px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error, .success {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            color: #dc2626;
+            border: 2px solid #fecaca;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            color: #16a34a;
+            border: 2px solid #bbf7d0;
+        }
+
+        .config-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+
+        .config-section h3 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .setup-instructions {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-left: 4px solid #3b82f6;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+        }
+
+        .setup-instructions h3 {
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+
+        .setup-instructions p,
+        .setup-instructions ol,
+        .setup-instructions li {
+            color: #1e3a8a;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .day-btn {
+            padding: 10px 20px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #64748b;
+        }
+
+        .day-btn.active {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .day-btn:hover:not(.active) {
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .content {
+                padding: 25px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .agendamento-info {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 8px;
+            }
+
+            .day-selector {
+                justify-content: center;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
-
-    <div class="container">
-
-        <div class="header">
-
-            <h1>Sistema de Agendamentos</h1>
-
-            <p>Veste seu momento!</p>
-
-        </div>
-
-
-
-        <div class="tabs">
-
-            <button class="tab active" onclick="showTab('novo')">✨ Novo Agendamento</button>
-
-            <button class="tab" onclick="showTab('lista')">📋 Agendamentos</button>
-
-            <button class="tab" onclick="showTab('concluidos')">✅ Concluídos</button>
-
-        </div>
-
-
-
-        <div class="content">
-
-            <div id="novo-tab">
-
-                <div class="form-section">
-
-                    <div class="list-header" style="align-items: flex-start;">
-
-                        <h2>✨ Novo Agendamento</h2>
-
-                        <button class="btn btn-alterar" onclick="openRegrasModal()">Regras de Agendamento</button>
-
-                    </div>
-
-                    <div id="message-area"></div>
-
-                    
-
-                    <form id="agendamentoForm">
-
-                        <div class="form-grid">
-
-                            <div class="form-group">
-
-                                <label for="cliente">👤 Nome do Cliente</label>
-
-                                <input type="text" id="cliente" required placeholder="Digite o nome completo">
-
-                            </div>
-
-
-
-                            <div class="form-group">
-
-                                <label for="telefone">📞 Telefone</label>
-
-                                <input type="tel" id="telefone" required placeholder="Apenas números, ex: 34991999999">
-
-                            </div>
-
-
-
-                            <div class="form-group">
-
-                                <label for="funcionario">👨‍💼 Atendente</label>
-
-                                <select id="funcionario" required>
-
-                                    <option value="">Selecione o atendente</option>
-
-                                    <option value="Ana">Ana</option>
-
-                                    <option value="Vitória">Vitória</option>
-
-                                    <option value="Luiz Pedro">Luiz Pedro</option>
-
-                                    <option value="Lorrayne">Lorrayne</option>
-
-                                    <option value="Maykol">Maykol</option>
-
-                                    <option value="Fillipy">Fillipy</option>
-
-                                    <option value="Renato">Renato</option>
-
-                                    <option value="Carol">Carol</option>
-
-                                    <option value="Augusto">Augusto</option>
-
-                                    <option value="Izabella">Izabella</option>
-
-                                    <option value="Giovana">Giovana</option>
-
-                                    <option value="Gabriela">Gabriela</option>
-
-                                    <option value="Jaqueline">Jaqueline</option>
-
-                                </select>
-
-                            </div>
-
-
-
-                            <div class="form-group">
-
-                                <label for="servico">💼 Serviço</label>
-
-                                <select id="servico" required>
-
-                                    <option value="">Selecione o serviço</option>
-
-                                    <option value="Atendimento">Atendimento</option>
-
-                                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
-
-                                    <option value="Retirada Vestido">Retirada Vestido</option>
-
-                                    <option value="Prova">Prova</option>
-
-                                </select>
-
-                            </div>
-
-
-
-                            <div class="form-group" id="email-field-group" style="display: none;">
-
-                                <label for="email">📧 Email</label>
-
-                                <input type="email" id="email" placeholder="cliente@email.com">
-
-                            </div>
-
-
-
-                            <div class="form-group full-width">
-
-                                <label>📅 Selecione o Mês e Ano</label>
-
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-
-                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(-1)">&#9664; Anterior</button>
-
-                                    <span id="currentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
-
-                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(1)">Próximo &#9654;</button>
-
-                                </div>
-
-                            </div>
-
-                            <div class="form-group full-width">
-
-                                <label>📅 Selecione o Dia</label>
-
-                                <div class="day-selector" id="daySelector">
-
-                                    </div>
-
-                            </div>
-
-
-
-                            <div class="form-group full-width">
-
-                                <label>🕐 Horários Disponíveis</label>
-
-                                <div class="time-slots" id="timeSlots">
-
-                                    <div class="loading">Selecione um dia para ver os horários</div>
-
-                                </div>
-
-                            </div>
-
-
-
-                            <div class="form-group full-width">
-
-                                <label for="observacoes">📝 Observações</label>
-
-                                <textarea id="observacoes" rows="3" placeholder="Observações adicionais (opcional)"></textarea>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <button type="submit" class="btn">✅ Confirmar Agendamento</button>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-
-
-            <div id="lista-tab" class="hidden">
-
-                <div class="form-section">
-
-                    <div class="list-header">
-
-    <h2>📋 Lista de Agendamentos</h2>
-
-    <div style="display: flex; align-items: center; gap: 10px;">
-
-        <input type="date" id="date-filter" onchange="loadAgendamentos()">
-
-        <div class="search-container">
-
-            <input type="text" id="search-input" placeholder="Pesquisar por cliente..." oninput="filterAgendamentos(this.value)">
-
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-
-        </div>
-
-    </div>
-
-</div>
-
-                    <div id="agendamentos-list">
-
-                        <div class="loading">Carregando agendamentos...</div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            
-
-            <div id="concluidos-tab" class="hidden">
-
-                <div class="form-section">
-
-                    <div class="list-header">
-
-                        <h2>✅ Agendamentos Concluídos</h2>
-
-                        <div class="search-container">
-
-                            <input type="text" id="search-input-concluidos" placeholder="Pesquisar por cliente..." oninput="filterConcluidos(this.value)">
-
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-
-                        </div>
-
-                    </div>
-
-                    <div id="concluidos-list">
-
-                        <div class="loading">Carregando agendamentos concluídos...</div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <div id="edit-modal" class="modal">
-
-        <div class="modal-content">
-
-            <span class="close-button" onclick="closeEditModal()">&times;</span>
-
-            <h3>Alterar Agendamento</h3>
-
-            <div id="edit-message-area"></div>
-
-            <div id="edit-agendamento-details"></div>
-
-            <div class="form-grid">
-
-                <div class="form-group full-width">
-
-                    <label>📅 Nova Data</label>
-
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-
-                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(-1)">&#9664; Anterior</button>
-
-                        <span id="editCurrentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
-
-                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(1)">Próximo &#9654;</button>
-
-                    </div>
-
-                    <div class="day-selector" id="editDaySelector"></div>
-
-                </div>
-
-                <div class="form-group full-width">
-
-                    <label>🕐 Novos Horários Disponíveis</label>
-
-                    <div class="time-slots" id="editTimeSlots"></div>
-
-                </div>
-
-            </div>
-
-            <button type="button" class="btn" onclick="saveEditedAppointment()">Salvar Alterações</button>
-
-        </div>
-
-    </div>
-
-    
-
-    <div id="regras-modal" class="modal">
-
-        <div class="modal-content">
-
-            <span class="close-button" onclick="closeRegrasModal()">&times;</span>
-
-            <h3>📋 Documento – Horários e Regras de Provas na Mr. Jack</h3>
-
-            <div style="font-size: 1em; color: #374151;">
-
-                <p><strong>🎯 Objetivo</strong><br>Definir horários ideais e exceções para agendamento de provas (masculino e feminino), garantindo organização, qualidade nos ajustes e presença da costureira responsável.</p>
-
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
-
-                <p><strong>⏰ 2. Regras Gerais de Horários</strong></p>
-
-                <p>✅ Horários ideais para agendamento:<br>
-
-                • 🕙 10h da manhã<br>
-
-                • ⏳ Das 14h às 17h</p>
-
-                <p>⚠️ Horários a evitar:<br>
-
-                • 🚫 Antes das 10h → precisamos de tempo para organizar trajes e ajustes pendentes da manhã.<br>
-
-                • 🍽 Das 11h às 14h → intervalo de almoço da equipe e da costureira.<br>
-
-                • ⌛ Após as 17h → pouco tempo para ajustes antes do fim do expediente.</p>
-
-                <p>💡 Obs.: Esses horários “a evitar” podem ser usados apenas quando não houver outra opção, em casos de alto fluxo de agendamentos.</p>
-
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
-
-                <p><strong>🤵 3. Provas Masculinas</strong></p>
-
-                <p>• Todos os clientes do masculino experimentam o traje na semana do evento, nos horários ideais acima.<br>
-
-                • 📅 Dias permitidos:<br>
-
-                • ✅ Terça a sexta-feira<br>
-
-                • 🚫 Segunda-feira: não agendar.<br>
-
-                • ⚠️ Terça de manhã: evitar (trajes podem estar retornando e precisam de higienização).<br>
-
-                • Sábado: não realizamos provas masculinas (somente exceções com autorização da gerência).<br>
-
-                • Ajustes comuns: barra, acinturamento, comprimento de manga e detalhes adicionais.</p>
-
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
-
-                <p><strong>👗 4. Provas Femininas</strong></p>
-
-                <p>• 📌 Primeira prova: sempre duas semanas antes do evento<br>
-
-                • Agendar no início da semana.<br>
-
-                • Evitar horário de almoço da costureira responsável (atualmente, Ana).<br>
-
-                • Ana deve estar presente em todas as provas de vestidos.<br>
-
-                • 📌 Segunda prova (semana do evento):<br>
-
-                • Preferência: terça ou quarta-feira.<br>
-
-                • Evitar: sexta-feira (risco alto de atrasos).<br>
-
-                • Quinta-feira: apenas de manhã, em último caso.<br>
-
-                • 👠 Importante: todas as clientes devem trazer o sapato ou salto que usarão no evento para prova de comprimento.</p>
-
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
-
-                <p><strong>📍 5. Motivos das Regras</strong></p>
-
-                <p>• 🗂 Organização interna: tempo para higienizar, passar e preparar trajes.<br>
-
-                • 👩‍🔧 Disponibilidade da costureira: evitar almoço e final de expediente.<br>
-
-                • ⏱ Prevenção de atrasos: manter prazo seguro para ajustes.<br>
-
-                • 🤝 Qualidade no atendimento: garantir provas completas e sem pressa.</p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <script>
-
-        // Variáveis globais
-
-        let db = null;
-
-        let isConfigured = false;
-
-        let selectedDate = null;
-
-        let selectedTime = null;
-
-        let editAppointmentId = null;
-
-        let editCalendarDate = new Date();
-
-        let currentCalendarDate = new Date();
-
-        let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
-
-        let concluidedAppointments = [];
-
-        let nonConcludedAppointments = [];
-
-
-
-        // Constante global para a data/hora atual (usada para horários passados)
-
-        const NOW_DATE_GLOBAL = new Date(); 
-
-        NOW_DATE_GLOBAL.setSeconds(0, 0); // Zera segundos e milissegundos para precisão da meia hora
-
-
-
-        // Horários de funcionamento
-
-        const WORKING_HOURS = {
-
-            start: '08:00',
-
-            end: '17:00',
-
-            workingDays: [1, 2, 3, 4, 5, 6]
-
-        };
-
-        
-
-        const MAX_APPOINTMENTS_PER_HOUR = 4;
-
-        const MAX_APPOINTMENTS_SATURDAY = 1; 
-
-        
-
-        // Feriados a serem removidos
-
-        const HOLIDAYS = ['2025-08-15'];
-
-        
-
-        // Tipos de serviço que contam como "trajes"
-
-        const DRESS_SERVICES = ['Prova', 'Primeira Prova Vestido', 'Retirada Vestido'];
-
-
-
-        // Funções do Firebase
-
-        const FIREBASE_CONFIG = {
-
-            apiKey: "AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ",
-
-            authDomain: "agenda-mr-jack.firebaseapp.com",
-
-            projectId: "agenda-mr-jack"
-
-        };
-
-        
-
-        function initFirebase() {
-
-            if (!firebase.apps.length) {
-
-                firebase.initializeApp(FIREBASE_CONFIG);
-
-            }
-
-            db = firebase.firestore();
-
-            isConfigured = true;
-
-            console.log('Firebase inicializado com sucesso!');
-
-        }
-
-
-
-        // Função para mostrar abas
-
-        function showTab(tabName) {
-
-            document.querySelectorAll('[id$="-tab"]').forEach(tab => {
-
-                tab.classList.add('hidden');
-
-            });
-
-            
-
-            document.querySelectorAll('.tab').forEach(btn => {
-
-                btn.classList.remove('active');
-
-            });
-
-            
-
-            document.getElementById(tabName + '-tab').classList.remove('hidden');
-
-            const clickedTabButton = Array.from(document.querySelectorAll('.tab')).find(btn => btn.getAttribute('onclick').includes(`'${tabName}'`));
-
-            if (clickedTabButton) {
-
-                clickedTabButton.classList.add('active');
-
-            }
-
-            
-
-            if (tabName === 'lista' || tabName === 'concluidos') {
-
-                loadAgendamentos();
-
-            } else if (tabName === 'novo') {
-
-                currentCalendarDate = new Date(); 
-
-                generateDaySelector(); 
-
-            }
-
-        }
-
-
-
-        // Carregar configuração ao iniciar
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            initFirebase();
-
-            showTab('novo'); 
-
-            document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
-
-        });
-
-
-
-        // Função para mostrar mensagens
-
-        function showMessage(message, type = 'success', targetElement = 'message-area') {
-
-            const messageArea = document.getElementById(targetElement);
-
-            messageArea.innerHTML = `<div class="${type}">${message}</div>`;
-
-            
-
-            setTimeout(() => {
-
-                messageArea.innerHTML = '';
-
-            }, 5000);
-
-        }
-
-        
-
-        const TODAY_DATE = new Date();
-
-        TODAY_DATE.setHours(0, 0, 0, 0);
-
-
-
-        function changeMonth(delta) {
-
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
-
-            
-
-            const fiveYearsFromNow = new Date(TODAY_DATE);
-
-            fiveYearsFromNow.setFullYear(TODAY_DATE.getFullYear() + 5);
-
-
-
-            if (currentCalendarDate.getFullYear() < TODAY_DATE.getFullYear() ||
-
-                (currentCalendarDate.getFullYear() === TODAY_DATE.getFullYear() && currentCalendarDate.getMonth() < TODAY_DATE.getMonth())) {
-
-                
-
-                currentCalendarDate = new Date(TODAY_DATE.getFullYear(), TODAY_DATE.getMonth(), 1);
-
-            }
-
-            
-
-            if (currentCalendarDate > fiveYearsFromNow) {
-
-                currentCalendarDate = fiveYearsFromNow;
-
-                currentCalendarDate.setDate(1);
-
-            }
-
-
-
-            selectedDate = null; 
-
-            generateDaySelector(); 
-
-        }
-
-
-
-        // Função para gerar seletor de dias
-
-        function generateDaySelector() {
-
-            const daySelector = document.getElementById('daySelector');
-
-            const currentMonthYearSpan = document.getElementById('currentMonthYear');
-
-            daySelector.innerHTML = '';
-
-            
-
-            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-
-
-            currentMonthYearSpan.textContent = `${monthNames[currentCalendarDate.getMonth()]} de ${currentCalendarDate.getFullYear()}`;
-
-
-
-            const lastDayOfMonth = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0);
-
-
-
-            let firstDayFound = false;
-
-
-
-            for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
-
-                const date = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), i);
-
-                const dayOfWeek = date.getDay();
-
-
-
-                const dateOnly = new Date(date);
-
-                dateOnly.setHours(0,0,0,0);
-
-                
-
-                const dateString = date.toISOString().split('T')[0];
-
-                if (HOLIDAYS.includes(dateString)) {
-
-                    continue;
-
-                }
-
-                
-
-                if (WORKING_HOURS.workingDays.includes(dayOfWeek) && dateOnly >= TODAY_DATE) {
-
-                    const dayBtn = document.createElement('button');
-
-                    dayBtn.classList.add('day-btn');
-
-                    dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
-
-                    dayBtn.dataset.date = dateString;
-
-                    dayBtn.dataset.dayOfWeek = dayOfWeek;
-
-
-
-                    dayBtn.addEventListener('click', () => {
-
-                        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
-
-                        dayBtn.classList.add('active');
-
-                        selectedDate = dayBtn.dataset.date;
-
-                        selectedTime = null;
-
-                        
-
-                        loadTimeSlots(selectedDate);
-
-                    });
-
-                    daySelector.appendChild(dayBtn);
-
-
-
-                    if (!firstDayFound && !selectedDate) {
-
-                        selectedDate = dayBtn.dataset.date;
-
-                        firstDayFound = true;
-
-                    }
-
-                }
-
-            }
-
-
-
-            if (selectedDate) {
-
-                const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
-
-                if (activeBtn) {
-
-                    activeBtn.classList.add('active');
-
-                    loadTimeSlots(selectedDate);
-
-                } else if (firstDayFound) {
-
-                    const firstBtn = daySelector.querySelector('.day-btn');
-
-                    firstBtn.classList.add('active');
-
-                    selectedDate = firstBtn.dataset.date;
-
-                    loadTimeSlots(selectedDate);
-
-                } else {
-
-                    document.getElementById('timeSlots').innerHTML = `<div class="loading">Nenhum dia disponível para agendamento neste mês.</div>`;
-
-                    selectedDate = null;
-
-                }
-
-            } else {
-
-                document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
-
-            }
-
-        }
-
-        
-
-        // Função para carregar horários disponíveis
-
-        async function loadTimeSlots(dateString) {
-
-            if (!db) {
-
-                showMessage('Firebase não configurado. Por favor, tente recarregar a página.', 'error');
-
-                return;
-
-            }
-
-            
-
-            if (HOLIDAYS.includes(dateString)) {
-
-                document.getElementById('timeSlots').innerHTML = `<div class="loading">Não há expediente neste feriado.</div>`;
-
-                return;
-
-            }
-
-
-
-            const timeSlotsDiv = document.getElementById('timeSlots');
-
-            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários para ${formatDate(dateString)}...</div>`;
-
-
-
-            try {
-
-                const appointmentsRef = db.collection('agendamentos');
-
-                
-
-                const snapshot = await appointmentsRef
-
-                    .where('data', '==', dateString)
-
-                    .get();
-
-                
-
-                const existingAppointments = {};
-
-                snapshot.forEach(doc => {
-
-                    const data = doc.data();
-
-                    if (data.status === 'agendado') { 
-
-                        if (existingAppointments[data.hora]) {
-
-                            existingAppointments[data.hora]++;
-
-                        } else {
-
-                            existingAppointments[data.hora] = 1;
-
-                        }
-
-                    }
-
-                });
-
-
-
-                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
-
-                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-
-                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
-
-                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
-
-
-
-                let loopStartTime = new Date(dateString + 'T12:00:00');
-
-                loopStartTime.setHours(startHour, startMinute, 0, 0);
-
-
-
-                const endTime = new Date(dateString + 'T12:00:00');
-
-                endTime.setHours(endHour, endMinute, 0, 0);
-
-
-
-                const selectedDayDateOnly = new Date(dateString);
-
-                selectedDayDateOnly.setHours(0,0,0,0);
-
-
-
-                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
-
-                todayDateOnly.setHours(0,0,0,0);
-
-
-
-                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-
-                    let nextHour = new Date(NOW_DATE_GLOBAL);
-
-                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-
-                    
-
-                    if (nextHour < loopStartTime) {
-
-                        loopStartTime = new Date(loopStartTime);
-
-                    } else {
-
-                        loopStartTime = new Date(nextHour);
-
-                    }
-
-                }
-
-                
-
-                const availableSlots = [];
-
-                let currentTimeSlot = new Date(loopStartTime);
-
-
-
-                if (currentTimeSlot > endTime) {
-
-                    timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
-
-                    return;
-
-                }
-
-                
-
-                while (currentTimeSlot <= endTime) {
-
-                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
-
-                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
-
-                    const time = `${slotHour}:${slotMinute}`;
-
-                    
-
-                    const bookingsCount = existingAppointments[time] || 0;
-
-                    
-
-                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
-
-                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
-
-                    const isFull = bookingsCount >= currentMaxAppointments;
-
-
-
-                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
-
-
-
-                    let availabilityClass = '';
-
-
-
-                    if (isFull || isPastTime) {
-
-                        availabilityClass = 'unavailable';
-
-                    } else {
-
-                        availabilityClass = 'available';
-
-                    }
-
-
-
-                    availableSlots.push({
-
-                        time,
-
-                        isFull,
-
-                        isPastTime,
-
-                        availabilityClass,
-
-                    });
-
-
-
-                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
-
-                }
-
-
-
-                timeSlotsDiv.innerHTML = '';
-
-                if (availableSlots.length === 0) {
-
-                    timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
-
-                    return;
-
-                }
-
-
-
-                availableSlots.forEach(slot => {
-
-                    const slotElement = document.createElement('div');
-
-                    slotElement.classList.add('time-slot');
-
-                    slotElement.textContent = slot.time;
-
-                    
-
-                    if (slot.availabilityClass) {
-
-                        slotElement.classList.add(slot.availabilityClass);
-
-                    }
-
-
-
-                    if (!slot.isFull && !slot.isPastTime) {
-
-                        slotElement.addEventListener('click', () => {
-
-                            document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
-
-                            slotElement.classList.add('selected');
-
-                            selectedTime = slot.time;
-
-                        });
-
-                    }
-
-                    timeSlotsDiv.appendChild(slotElement);
-
-                });
-
-
-
-            } catch (error) {
-
-                console.error("Erro ao carregar horários:", error);
-
-                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
-
-            }
-
-        }
-
-
-
-        // Função para formatar data (opcional, para exibição)
-
-        function formatDate(dateString) {
-
-            const [year, month, day] = dateString.split('-');
-
-            return `${day}/${month}/${year}`;
-
-        }
-
-        
-
-        // Função para formatar hora (para ordenação)
-
-        function formatTime(timeString) {
-
-            const [hours, minutes] = timeString.split(':');
-
-            return parseInt(hours) * 60 + parseInt(minutes);
-
-        }
-
-        
-
-        // Função para abrir a modal de edição de agendamento
-
-        async function openEditModal(id) {
-
-            editAppointmentId = id;
-
-            document.getElementById('edit-modal').style.display = 'flex';
-
-            
-
-            const appointmentRef = db.collection('agendamentos').doc(id);
-
-            const doc = await appointmentRef.get();
-
-            const agendamento = doc.data();
-
-
-
-            document.getElementById('edit-agendamento-details').innerHTML = `
-
-                <p><strong>Cliente:</strong> ${agendamento.cliente}</p>
-
-                <p><strong>Atendente:</strong> ${agendamento.funcionario}</p>
-
-                <p><strong>Serviço:</strong> ${agendamento.servico}</p>
-
-                <p><strong>Agendamento atual:</strong> ${formatDate(agendamento.data)} às ${agendamento.hora}</p>
-
-            `;
-
-            
-
-            // Inicializa o calendário da modal com a data do agendamento
-
-            editCalendarDate = new Date(agendamento.data + 'T12:00:00');
-
-            selectedDate = agendamento.data;
-
-            selectedTime = agendamento.hora;
-
-            generateEditDaySelector();
-
-        }
-
-
-
-        // Funções de navegação do calendário da modal de edição
-
-        function changeEditMonth(delta) {
-
-            editCalendarDate.setMonth(editCalendarDate.getMonth() + delta);
-
-            generateEditDaySelector();
-
-        }
-
-
-
-        function generateEditDaySelector() {
-
-            const daySelector = document.getElementById('editDaySelector');
-
-            const monthYearSpan = document.getElementById('editCurrentMonthYear');
-
-            daySelector.innerHTML = '';
-
-
-
-            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-            monthYearSpan.textContent = `${monthNames[editCalendarDate.getMonth()]} de ${editCalendarDate.getFullYear()}`;
-
-
-
-            const today = new Date();
-
-            today.setHours(0,0,0,0);
-
-            const lastDayOfMonth = new Date(editCalendarDate.getFullYear(), editCalendarDate.getMonth() + 1, 0);
-
-
-
-            for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
-
-                const date = new Date(editCalendarDate.getFullYear(), editCalendarDate.getMonth(), i);
-
-                const dayOfWeek = date.getDay();
-
-
-
-                const dateOnly = new Date(date);
-
-                dateOnly.setHours(0,0,0,0);
-
-                const dateString = date.toISOString().split('T')[0];
-
-
-
-                if (WORKING_HOURS.workingDays.includes(dayOfWeek) && dateOnly >= TODAY_DATE && !HOLIDAYS.includes(dateString)) {
-
-                    const dayBtn = document.createElement('button');
-
-                    dayBtn.classList.add('day-btn');
-
-                    dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
-
-                    dayBtn.dataset.date = dateString;
-
-                    
-
-                    if (dateString === selectedDate) {
-
-                        dayBtn.classList.add('active');
-
-                    }
-
-
-
-                    dayBtn.addEventListener('click', () => {
-
-                        document.querySelectorAll('#editDaySelector .day-btn').forEach(btn => btn.classList.remove('active'));
-
-                        dayBtn.classList.add('active');
-
-                        selectedDate = dayBtn.dataset.date;
-
-                        selectedTime = null;
-
-                        loadEditTimeSlots(selectedDate);
-
-                    });
-
-                    daySelector.appendChild(dayBtn);
-
-                }
-
-            }
-
-
-
-            if (selectedDate) {
-
-                loadEditTimeSlots(selectedDate);
-
-            } else {
-
-                document.getElementById('editTimeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
-
-            }
-
-        }
-
-        
-
-        async function loadEditTimeSlots(dateString) {
-
-            const timeSlotsDiv = document.getElementById('editTimeSlots');
-
-            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários...</div>`;
-
-
-
-            try {
-
-                const appointmentsRef = db.collection('agendamentos');
-
-                const snapshot = await appointmentsRef.where('data', '==', dateString).get();
-
-                
-
-                const existingAppointments = {};
-
-                snapshot.forEach(doc => {
-
-                    if (doc.id !== editAppointmentId && doc.data().status === 'agendado') {
-
-                        const data = doc.data();
-
-                        if (existingAppointments[data.hora]) {
-
-                            existingAppointments[data.hora]++;
-
-                        } else {
-
-                            existingAppointments[data.hora] = 1;
-
-                        }
-
-                    }
-
-                });
-
-
-
-                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
-
-                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
-
-                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
-
-                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
-
-
-
-                let loopStartTime = new Date(dateString + 'T12:00:00');
-
-                loopStartTime.setHours(startHour, startMinute, 0, 0);
-
-                const endTime = new Date(dateString + 'T12:00:00');
-
-                endTime.setHours(endHour, endMinute, 0, 0);
-
-
-
-                const selectedDayDateOnly = new Date(dateString);
-
-                selectedDayDateOnly.setHours(0,0,0,0);
-
-                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
-
-                todayDateOnly.setHours(0,0,0,0);
-
-
-
-                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
-
-                    let nextHour = new Date(NOW_DATE_GLOBAL);
-
-                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-
-                    if (nextHour < loopStartTime) {
-
-                        loopStartTime = new Date(loopStartTime);
-
-                    } else {
-
-                        loopStartTime = new Date(nextHour);
-
-                    }
-
-                }
-
-                
-
-                const availableSlots = [];
-
-                let currentTimeSlot = new Date(loopStartTime);
-
-                
-
-                while (currentTimeSlot <= endTime) {
-
-                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
-
-                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
-
-                    const time = `${slotHour}:${slotMinute}`;
-
-                    
-
-                    const bookingsCount = existingAppointments[time] || 0;
-
-                    
-
-                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
-
-                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
-
-                    const isFull = bookingsCount >= currentMaxAppointments;
-
-
-
-                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
-
-
-
-                    availableSlots.push({
-
-                        time,
-
-                        isFull,
-
-                        isPastTime,
-
-                        isSelected: time === selectedTime,
-
-                    });
-
-                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
-
-                }
-
-
-
-                timeSlotsDiv.innerHTML = '';
-
-                availableSlots.forEach(slot => {
-
-                    const slotElement = document.createElement('div');
-
-                    slotElement.classList.add('time-slot');
-
-                    slotElement.textContent = slot.time;
-
-                    
-
-                    if (slot.isFull || slot.isPastTime) {
-
-                        slotElement.classList.add('unavailable');
-
-                    }
-
-                    if (slot.isSelected) {
-
-                        slotElement.classList.add('selected');
-
-                    }
-
-
-
-                    if (!slot.isFull && !slot.isPastTime) {
-
-                        slotElement.addEventListener('click', () => {
-
-                            document.querySelectorAll('#editTimeSlots .time-slot').forEach(s => s.classList.remove('selected'));
-
-                            slotElement.classList.add('selected');
-
-                            selectedTime = slot.time;
-
-                        });
-
-                    }
-
-                    timeSlotsDiv.appendChild(slotElement);
-
-                });
-
-            } catch (error) {
-
-                console.error("Erro ao carregar horários para edição:", error);
-
-                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
-
-            }
-
-        }
-
-        
-
-        function closeEditModal() {
-
-            document.getElementById('edit-modal').style.display = 'none';
-
-            editAppointmentId = null;
-
-            selectedDate = null;
-
-            selectedTime = null;
-
-            loadAgendamentos();
-
-        }
-
-
-
-        async function saveEditedAppointment() {
-
-            if (!selectedDate || !selectedTime) {
-
-                showMessage('Por favor, selecione uma nova data e horário.', 'error', 'edit-message-area');
-
-                return;
-
-            }
-
-
-
-            try {
-
-                const docRef = db.collection('agendamentos').doc(editAppointmentId);
-
-                await docRef.update({
-
-                    data: selectedDate,
-
-                    hora: selectedTime,
-
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-
-                });
-
-
-
-                showMessage('Agendamento alterado com sucesso!', 'success', 'edit-message-area');
-
-                closeEditModal();
-
-                loadAgendamentos();
-
-            } catch (error) {
-
-                console.error("Erro ao salvar alterações:", error);
-
-                showMessage(`Erro ao salvar: ${error.message}`, 'error', 'edit-message-area');
-
-            }
-
-        }
-
-
-
-        // Enviar formulário de agendamento
-
-        document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
-
-            e.preventDefault();
-
-
-
-            if (!db || !isConfigured) {
-
-                showMessage('Erro: Firebase não está configurado. Por favor, recarregue a página.', 'error');
-
-                return;
-
-            }
-
-
-
-            const cliente = document.getElementById('cliente').value;
-
-            const telefone = document.getElementById('telefone').value;
-
-            const funcionario = document.getElementById('funcionario').value;
-
-            const servico = document.getElementById('servico').value;
-
-            const observacoes = document.getElementById('observacoes').value;
-
-
-
-            if (!cliente || !telefone || !funcionario || !servico || !selectedDate || !selectedTime) {
-
-                showMessage('Por favor, preencha todos os campos obrigatórios e selecione um dia e horário.', 'error');
-
-                return;
-
-            }
-
-            
-
-            if (HOLIDAYS.includes(selectedDate)) {
-
-                showMessage('Não é possível agendar neste feriado.', 'error');
-
-                return;
-
-            }
-
-
-
-            const phoneRegex = /^\d{10,11}$/;
-
-            if (!phoneRegex.test(telefone)) {
-
-                showMessage('Formato de telefone inválido. Use apenas números, incluindo o DDD (10 ou 11 dígitos).', 'error');
-
-                return;
-
-            }
-
-            
-
-            const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
-
-            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
-
-            if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
-
-                showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
-
-                return;
-
-            }
-
-            
-
-            try {
-
-                const appointmentsRef = db.collection('agendamentos');
-
-                const snapshot = await appointmentsRef
-
-                    .where('data', '==', selectedDate)
-
-                    .where('hora', '==', selectedTime)
-
-                    .where('status', '!=', 'cancelado')
-
-                    .get();
-
-
-
-                const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
-
-                const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
-
-
-
-                if (snapshot.docs.length >= currentMaxAppointments) {
-
-                    showMessage('Este horário não está mais disponível. Por favor, selecione outro.', 'error');
-
-                    await loadTimeSlots(selectedDate);
-
-                    return;
-
-                }
-
-
-
-                await db.collection('agendamentos').add({
-
-                    cliente,
-
-                    telefone,
-
-                    funcionario,
-
-                    servico,
-
-                    data: selectedDate,
-
-                    hora: selectedTime,
-
-                    observacoes,
-
-                    status: 'agendado',
-
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-
-                });
-
-
-
-                showMessage('Agendamento realizado com sucesso!', 'success');
-
-                document.getElementById('agendamentoForm').reset();
-
-                selectedDate = null;
-
-                selectedTime = null;
-
-                document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
-
-                currentCalendarDate = new Date(); 
-
-                generateDaySelector(); 
-
-            } catch (error) {
-
-                console.error("Erro ao adicionar agendamento:", error);
-
-                showMessage(`Erro ao agendar: ${error.message}`, 'error');
-
-            }
-
-        });
-
-
-
-        // FUNÇÃO QUE GERA E BAIXA O PDF DOS AGENDAMENTOS DE UM DIA
-
-        function downloadPDF(date, appointments, trajesCount) {
-
-            if (!window.jspdf) {
-
-                alert('A biblioteca jsPDF não foi carregada. Tente recarregar a página.');
-
-                return;
-
-            }
-
-            
-
-            const doc = new window.jspdf.jsPDF();
-
-            doc.setFontSize(18);
-
-            doc.text(`Agendamentos do Dia: ${formatDate(date)} | Trajes: ${trajesCount}`, 15, 20);
-
-            
-
-            doc.setFontSize(14);
-
-            let y = 30;
-
-
-
-            appointments.forEach(agendamento => {
-
-                if (y > 280) {
-
-                    doc.addPage();
-
-                    y = 20;
-
-                }
-
-
-
-                doc.text(`- Cliente: ${agendamento.cliente} | Telefone: ${agendamento.telefone} | Horário: ${agendamento.hora}`, 15, y);
-
-                y += 10;
-
-            });
-
-
-
-            doc.save(`agendamentos_${date}.pdf`);
-
-        }
-
-        
-
-        // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
-
-        function loadAgendamentos() {
-
-            if (!db || !isConfigured) {
-
-                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
-
-                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
-
-                return;
-
-            }
-
-            
-
-            document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
-
-            document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
-
-            document.getElementById('search-input').value = '';
-
-            document.getElementById('search-input-concluidos').value = '';
-
-
-
-            try {
-
-                db.collection('agendamentos')
-
-                    .orderBy('timestamp', 'desc')
-
-                    .onSnapshot(snapshot => {
-
-                        allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-
-                        
-
-                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido');
-
-                        concludedAppointments = allAppointments.filter(a => a.status === 'concluido');
-
-
-
-                        renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
-
-                        renderAgendamentos(concludedAppointments, 'concluidos-list', true);
-
-
-
-                    }, error => {
-
-                        console.error("Erro ao carregar agendamentos:", error);
-
-                        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-
-                        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-
-                    });
-
-
-
-            } catch (error) {
-
-                console.error("Erro ao carregar agendamentos:", error);
-
-                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-
-                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
-
-            }
-
-        }
-
-        
-
-        // Função para renderizar os agendamentos na tela
-
-        function renderAgendamentos(agendamentosToRender, listId, isConcludedList = false) {
-
-            const agendamentosList = document.getElementById(listId);
-
-            agendamentosList.innerHTML = '';
-
-            
-
-            if (agendamentosToRender.length === 0) {
-
-                agendamentosList.innerHTML = `<div class="loading">Nenhum agendamento encontrado.</div>`;
-
-                return;
-
-            }
-
-
-
-            const agendamentosPorDia = {};
-
-            agendamentosToRender.forEach(agendamento => {
-
-                const data = agendamento.data;
-
-                if (!agendamentosPorDia[data]) {
-
-                    agendamentosPorDia[data] = [];
-
-                }
-
-                agendamentosPorDia[data].push(agendamento);
-
-            });
-
-            
-
-            const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => {
-
-                const dateA = new Date(a);
-
-                const dateB = new Date(b);
-
-                
-
-                if (isConcludedList) {
-
-                    return dateB - dateA; // Para concluídos, ordena da mais recente para a mais antiga
-
-                } else {
-
-                    return dateA - dateB; // Para não-concluídos, ordena da mais antiga para a mais recente
-
-                }
-
-            });
-
-            
-
-            datasOrdenadas.forEach(data => {
-
-                const agendamentosDoDia = agendamentosPorDia[data];
-
-                agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
-
-                
-
-                const trajesCount = agendamentosDoDia.filter(a => DRESS_SERVICES.includes(a.servico)).length;
-
-
-
-                const diaContainer = document.createElement('div');
-
-                diaContainer.classList.add('agendamentos-dia');
-
-                
-
-                let htmlDia = `
-
-                    <h3>
-
-                        <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
-
-                        <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
-
-                        <div class="btn-group">
-
-                          <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
-
-                        </div>
-
-                    </h3>
-
-                `;
-
-                
-
-                agendamentosDoDia.forEach(agendamento => {
-
-                    htmlDia += `
-
-                        <div class="agendamento-card">
-
-                            <div class="agendamento-header">
-
-                                <span class="agendamento-cliente">${agendamento.cliente}</span>
-
-                                <span class="agendamento-data">${agendamento.hora}</span>
-
-                            </div>
-
-                            <div class="agendamento-info">
-
-                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
-
-                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo e, se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
-
-                                        <i class="fab fa-whatsapp"></i>
-
-                                    </a>
-
-                                </div>
-
-                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
-
-                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
-
-                            </div>
-
-                            ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
-
-                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-
-                                <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
-
-                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
-
-                                ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
-
-                                <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                });
-
-                
-
-                diaContainer.innerHTML = htmlDia;
-
-                agendamentosList.appendChild(diaContainer);
-
-            });
-
-        }
-
-        
-
-        // Nova função para filtrar os agendamentos da aba principal
-
-        function filterAgendamentos(query) {
-
-            const normalizedQuery = query.toLowerCase().trim();
-
-            if (normalizedQuery === '') {
-
-                renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
-
-                return;
-
-            }
-
-            
-
-            const filteredAppointments = nonConcludedAppointments.filter(agendamento => {
-
-                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
-
-            });
-
-            
-
-            renderAgendamentos(filteredAppointments, 'agendamentos-list');
-
-        }
-
-        
-
-        // Nova função para filtrar os agendamentos da aba de concluídos
-
-        function filterConcluidos(query) {
-
-            const normalizedQuery = query.toLowerCase().trim();
-
-            if (normalizedQuery === '') {
-
-                renderAgendamentos(concludedAppointments, 'concluidos-list', true);
-
-                return;
-
-            }
-
-            
-
-            const filteredAppointments = concludedAppointments.filter(agendamento => {
-
-                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
-
-            });
-
-            
-
-            renderAgendamentos(filteredAppointments, 'concluidos-list', true);
-
-        }
-
-
-
-        // Função para cancelar agendamento
-
-        async function cancelAgendamento(id) {
-
-            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
-
-                return;
-
-            }
-
-            if (!db) {
-
-                showMessage('Firebase não configurado.', 'error');
-
-                return;
-
-            }
-
-            try {
-
-                await db.collection('agendamentos').doc(id).update({ status: 'cancelado' });
-
-                showMessage('Agendamento cancelado com sucesso!', 'success');
-
-                loadAgendamentos();
-
-            } catch (error) {
-
-                console.error("Erro ao cancelar agendamento:", error);
-
-                showMessage(`Erro ao cancelar agendamento: ${error.message}`, 'error');
-
-            }
-
-        }
-
-
-
-        // Função para concluir agendamento
-
-        async function completeAgendamento(id) {
-
-            if (!confirm('Tem certeza que deseja marcar este agendamento como concluído?')) {
-
-                return;
-
-            }
-
-            if (!db) {
-
-                showMessage('Firebase não configurado.', 'error');
-
-                return;
-
-            }
-
-            try {
-
-                await db.collection('agendamentos').doc(id).update({ status: 'concluido' });
-
-                showMessage('Agendamento concluído com sucesso!', 'success');
-
-                loadAgendamentos();
-
-            } catch (error) {
-
-                console.error("Erro ao concluir agendamento:", error);
-
-                showMessage(`Erro ao concluir agendamento: ${error.message}`, 'error');
-
-            }
-
-        }
-
-    </script>
-
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Agendamentos</h1>
+            <p>Veste seu momento!</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('novo')">✨ Novo Agendamento</button>
+            <button class="tab" onclick="showTab('lista')">📋 Agendamentos</button>
+        </div>
+
+        <div class="content">
+            <div id="novo-tab">
+                <div class="form-section">
+                    <h2>✨ Novo Agendamento</h2>
+                    <div id="message-area"></div>
+                    
+                    <form id="agendamentoForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="cliente">👤 Nome do Cliente</label>
+                                <input type="text" id="cliente" required placeholder="Digite o nome completo">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="telefone">📞 Telefone</label>
+                                <input type="tel" id="telefone" required placeholder="Apenas números, ex: 34991999999">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="funcionario">👨‍💼 Atendente</label>
+                                <select id="funcionario" required>
+                                    <option value="">Selecione o atendente</option>
+                                    <option value="Ana">Ana</option>
+                                    <option value="Vitória">Vitória</option>
+                                    <option value="Luiz Pedro">Luiz Pedro</option>
+                                    <option value="Lorrayne">Lorrayne</option>
+                                    <option value="Maykol">Maykol</option>
+                                    <option value="Fillipy">Fillipy</option>
+                                    <option value="Renato">Renato</option>
+                                    <option value="Carol">Carol</option>
+                                    <option value="Augusto">Augusto</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="servico">💼 Serviço</label>
+                                <select id="servico" required>
+                                    <option value="">Selecione o serviço</option>
+                                    <option value="Atendimento">Atendimento</option>
+                                    <option value="Prova">Prova</option>
+                                    <option value="Primeira Prova Vestido">Primeira Prova Vestido</option>
+                                    <option value="Retirada Vestido">Retirada Vestido</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>📅 Selecione o Mês e Ano</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(-1)">&#9664; Anterior</button>
+                                    <span id="currentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
+                                    <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeMonth(1)">Próximo &#9654;</button>
+                                </div>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>📅 Selecione o Dia</label>
+                                <div class="day-selector" id="daySelector">
+                                    </div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>🕐 Horários Disponíveis</label>
+                                <div class="time-slots" id="timeSlots">
+                                    <div class="loading">Selecione um dia para ver os horários</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="observacoes">📝 Observações</label>
+                                <textarea id="observacoes" rows="3" placeholder="Observações adicionais (opcional)"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">✅ Confirmar Agendamento</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="lista-tab" class="hidden">
+                <div class="form-section">
+                    <div class="list-header">
+                        <h2>📋 Lista de Agendamentos</h2>
+                        <div class="search-container">
+                            <input type="text" id="search-input" placeholder="Pesquisar por cliente..." oninput="filterAgendamentos(this.value)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                    </div>
+                    <div id="agendamentos-list">
+                        <div class="loading">Carregando agendamentos...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeEditModal()">&times;</span>
+            <h3>Alterar Agendamento</h3>
+            <div id="edit-message-area"></div>
+            <div id="edit-agendamento-details"></div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>📅 Nova Data</label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(-1)">◀ Anterior</button>
+                        <span id="editCurrentMonthYear" style="font-weight: 600; font-size: 1.2em; flex-grow: 1; text-align: center; color: #1e293b;"></span>
+                        <button type="button" class="btn" style="width: auto; padding: 10px; font-size: 1em; margin: 0;" onclick="changeEditMonth(1)">Próximo ▶</button>
+                    </div>
+                    <div class="day-selector" id="editDaySelector"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label>🕐 Novos Horários Disponíveis</label>
+                    <div class="time-slots" id="editTimeSlots"></div>
+                </div>
+            </div>
+            <button type="button" class="btn" onclick="saveEditedAppointment()">Salvar Alterações</button>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let db = null;
+        let isConfigured = false;
+        let selectedDate = null;
+        let selectedTime = null;
+        let editAppointmentId = null;
+        let editCalendarDate = new Date();
+        let currentCalendarDate = new Date();
+        let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
+
+        // Constante global para a data/hora atual (usada para horários passados)
+        const NOW_DATE_GLOBAL = new Date(); 
+        NOW_DATE_GLOBAL.setSeconds(0, 0); // Zera segundos e milissegundos para precisão da meia hora
+
+        // Horários de funcionamento
+        const WORKING_HOURS = {
+            start: '10:00',
+            end: '17:00',
+            workingDays: [1, 2, 3, 4, 5, 6]
+        };
+        
+        const MAX_APPOINTMENTS_PER_HOUR = 4;
+        const MAX_APPOINTMENTS_SATURDAY = 1; 
+        
+        // Feriados a serem removidos
+        const HOLIDAYS = ['2025-08-15'];
+        
+        // Tipos de serviço que contam como "trajes"
+        const DRESS_SERVICES = ['Prova', 'Primeira Prova Vestido', 'Retirada Vestido'];
+
+        // Funções do Firebase
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBaDBgoPIBCyG1IFAuvIpoJ26P88tTu6dQ",
+            authDomain: "agenda-mr-jack.firebaseapp.com",
+            projectId: "agenda-mr-jack"
+        };
+        
+        function initFirebase() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            db = firebase.firestore();
+            isConfigured = true;
+            console.log('Firebase inicializado com sucesso!');
+        }
+
+        // Função para mostrar abas
+        function showTab(tabName) {
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            const clickedTabButton = Array.from(document.querySelectorAll('.tab')).find(btn => btn.getAttribute('onclick').includes(`'${tabName}'`));
+            if (clickedTabButton) {
+                clickedTabButton.classList.add('active');
+            }
+            
+            if (tabName === 'lista') {
+                loadAgendamentos();
+            } else if (tabName === 'novo') {
+                currentCalendarDate = new Date(); 
+                generateDaySelector(); 
+            }
+        }
+        
+        // Função para abrir a modal de regras
+        function openRegrasModal() {
+            document.getElementById('regras-modal').style.display = 'flex';
+        }
+
+        // Função para fechar a modal de regras
+        function closeRegrasModal() {
+            document.getElementById('regras-modal').style.display = 'none';
+        }
+
+        // Carregar configuração ao iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+            showTab('novo'); 
+            document.querySelector('.tab[onclick="showTab(\'novo\')"]').classList.add('active');
+        });
+
+        // Função para mostrar mensagens
+        function showMessage(message, type = 'success', targetElement = 'message-area') {
+            const messageArea = document.getElementById(targetElement);
+            messageArea.innerHTML = `<div class="${type}">${message}</div>`;
+            
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+        
+        const TODAY_DATE = new Date();
+        TODAY_DATE.setHours(0, 0, 0, 0);
+
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            
+            const fiveYearsFromNow = new Date(TODAY_DATE);
+            fiveYearsFromNow.setFullYear(TODAY_DATE.getFullYear() + 5);
+
+            if (currentCalendarDate.getFullYear() < TODAY_DATE.getFullYear() ||
+                (currentCalendarDate.getFullYear() === TODAY_DATE.getFullYear() && currentCalendarDate.getMonth() < TODAY_DATE.getMonth())) {
+                
+                currentCalendarDate = new Date(TODAY_DATE.getFullYear(), TODAY_DATE.getMonth(), 1);
+            }
+            
+            if (currentCalendarDate > fiveYearsFromNow) {
+                currentCalendarDate = fiveYearsFromNow;
+                currentCalendarDate.setDate(1);
+            }
+
+            selectedDate = null; 
+            generateDaySelector(); 
+        }
+
+        // Função para gerar seletor de dias
+        function generateDaySelector() {
+            const daySelector = document.getElementById('daySelector');
+            const currentMonthYearSpan = document.getElementById('currentMonthYear');
+            daySelector.innerHTML = '';
+            
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+            currentMonthYearSpan.textContent = `${monthNames[currentCalendarDate.getMonth()]} de ${currentCalendarDate.getFullYear()}`;
+
+            const lastDayOfMonth = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0);
+
+            let firstDayFound = false;
+
+            for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+                const date = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), i);
+                const dayOfWeek = date.getDay();
+
+                const dateOnly = new Date(date);
+                dateOnly.setHours(0,0,0,0);
+                
+                const dateString = date.toISOString().split('T')[0];
+                if (HOLIDAYS.includes(dateString)) {
+                    continue;
+                }
+                
+                if (WORKING_HOURS.workingDays.includes(dayOfWeek) && dateOnly >= TODAY_DATE) {
+                    const dayBtn = document.createElement('button');
+                    dayBtn.classList.add('day-btn');
+                    dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
+                    dayBtn.dataset.date = dateString;
+                    dayBtn.dataset.dayOfWeek = dayOfWeek;
+
+                    dayBtn.addEventListener('click', () => {
+                        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+                        dayBtn.classList.add('active');
+                        selectedDate = dayBtn.dataset.date;
+                        selectedTime = null;
+                        
+                        loadTimeSlots(selectedDate);
+                    });
+                    daySelector.appendChild(dayBtn);
+
+                    if (!firstDayFound && !selectedDate) {
+                        selectedDate = dayBtn.dataset.date;
+                        firstDayFound = true;
+                    }
+                }
+            }
+
+            if (selectedDate) {
+                const activeBtn = daySelector.querySelector(`[data-date="${selectedDate}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                    loadTimeSlots(selectedDate);
+                } else if (firstDayFound) {
+                    const firstBtn = daySelector.querySelector('.day-btn');
+                    firstBtn.classList.add('active');
+                    selectedDate = firstBtn.dataset.date;
+                    loadTimeSlots(selectedDate);
+                } else {
+                    document.getElementById('timeSlots').innerHTML = `<div class="loading">Nenhum dia disponível para agendamento neste mês.</div>`;
+                    selectedDate = null;
+                }
+            } else {
+                document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
+            }
+        }
+        
+        function loadTimeSlots(dateString) {
+            if (!db) {
+                showMessage('Firebase não configurado. Por favor, tente recarregar a página.', 'error');
+                return;
+            }
+            
+            if (HOLIDAYS.includes(dateString)) {
+                document.getElementById('timeSlots').innerHTML = `<div class="loading">Não há expediente neste feriado.</div>`;
+                return;
+            }
+
+            const timeSlotsDiv = document.getElementById('timeSlots');
+            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários para ${formatDate(dateString)}...</div>`;
+
+            try {
+                const appointmentsRef = db.collection('agendamentos');
+                
+                db.collection('agendamentos')
+                    .where('data', '==', dateString)
+                    .onSnapshot(snapshot => {
+                        const existingAppointments = {};
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.status === 'agendado') { 
+                                if (existingAppointments[data.hora]) {
+                                    existingAppointments[data.hora]++;
+                                } else {
+                                    existingAppointments[data.hora] = 1;
+                                }
+                            }
+                        });
+
+                        const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                        const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
+                        const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
+                        const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
+
+                        let loopStartTime = new Date(dateString + 'T12:00:00');
+                        loopStartTime.setHours(startHour, startMinute, 0, 0);
+
+                        const endTime = new Date(dateString + 'T12:00:00');
+                        endTime.setHours(endHour, endMinute, 0, 0);
+
+                        const selectedDayDateOnly = new Date(dateString);
+                        selectedDayDateOnly.setHours(0,0,0,0);
+
+                        const todayDateOnly = new Date(NOW_DATE_GLOBAL);
+                        todayDateOnly.setHours(0,0,0,0);
+
+                        if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
+                            let nextHour = new Date(NOW_DATE_GLOBAL);
+                            nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+                            
+                            if (nextHour < loopStartTime) {
+                                loopStartTime = new Date(loopStartTime);
+                            } else {
+                                loopStartTime = new Date(nextHour);
+                            }
+                        }
+                        
+                        const availableSlots = [];
+                        let currentTimeSlot = new Date(loopStartTime);
+
+                        if (currentTimeSlot > endTime) {
+                            timeSlotsDiv.innerHTML = `<div class="loading">Todos os horários para este dia já passaram ou estão lotados.</div>`;
+                            return;
+                        }
+                        
+                        while (currentTimeSlot <= endTime) {
+                            const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
+                            const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
+                            const time = `${slotHour}:${slotMinute}`;
+                            
+                            const bookingsCount = existingAppointments[time] || 0;
+                            
+                            const selectedDay = new Date(dateString + 'T12:00:00').getDay();
+                            const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+                            const isFull = bookingsCount >= currentMaxAppointments;
+
+                            const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
+
+                            let availabilityClass = '';
+
+                            if (isFull || isPastTime) {
+                                availabilityClass = 'unavailable';
+                            } else {
+                                availabilityClass = 'available';
+                            }
+
+                            availableSlots.push({
+                                time,
+                                isFull,
+                                isPastTime,
+                                availabilityClass,
+                            });
+
+                            currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
+                        }
+
+                        timeSlotsDiv.innerHTML = '';
+                        if (availableSlots.length === 0) {
+                            timeSlotsDiv.innerHTML = `<div class="loading">Nenhum horário disponível para este dia.</div>`;
+                            return;
+                        }
+
+                        availableSlots.forEach(slot => {
+                            const slotElement = document.createElement('div');
+                            slotElement.classList.add('time-slot');
+                            slotElement.textContent = slot.time;
+                            
+                            if (slot.availabilityClass) {
+                                slotElement.classList.add(slot.availabilityClass);
+                            }
+
+                            if (!slot.isFull && !slot.isPastTime) {
+                                slotElement.addEventListener('click', () => {
+                                    document.querySelectorAll('.time-slots .time-slot').forEach(s => s.classList.remove('selected'));
+                                    slotElement.classList.add('selected');
+                                    selectedTime = slot.time;
+                                });
+                            }
+                            timeSlotsDiv.appendChild(slotElement);
+                        });
+
+                    });
+                
+
+            } catch (error) {
+                console.error("Erro ao carregar horários:", error);
+                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
+            }
+        }
+
+        // Função para formatar data (opcional, para exibição)
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+        
+        // Função para formatar hora (para ordenação)
+        function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            return parseInt(hours) * 60 + parseInt(minutes);
+        }
+        
+        // Função para abrir a modal de edição de agendamento
+        async function openEditModal(id) {
+            editAppointmentId = id;
+            document.getElementById('edit-modal').style.display = 'flex';
+            
+            const appointmentRef = db.collection('agendamentos').doc(id);
+            const doc = await appointmentRef.get();
+            const agendamento = doc.data();
+
+            document.getElementById('edit-agendamento-details').innerHTML = `
+                <p><strong>Cliente:</strong> ${agendamento.cliente}</p>
+                <p><strong>Atendente:</strong> ${agendamento.funcionario}</p>
+                <p><strong>Serviço:</strong> ${agendamento.servico}</p>
+                <p><strong>Agendamento atual:</strong> ${formatDate(agendamento.data)} às ${agendamento.hora}</p>
+            `;
+            
+            // Inicializa o calendário da modal com a data do agendamento
+            editCalendarDate = new Date(agendamento.data + 'T12:00:00');
+            selectedDate = agendamento.data;
+            selectedTime = agendamento.hora;
+            generateEditDaySelector();
+        }
+
+        // Funções de navegação do calendário da modal de edição
+        function changeEditMonth(delta) {
+            editCalendarDate.setMonth(editCalendarDate.getMonth() + delta);
+            generateEditDaySelector();
+        }
+
+        function generateEditDaySelector() {
+            const daySelector = document.getElementById('editDaySelector');
+            const monthYearSpan = document.getElementById('editCurrentMonthYear');
+            daySelector.innerHTML = '';
+
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            monthYearSpan.textContent = `${monthNames[editCalendarDate.getMonth()]} de ${editCalendarDate.getFullYear()}`;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const lastDayOfMonth = new Date(editCalendarDate.getFullYear(), editCalendarDate.getMonth() + 1, 0);
+
+            for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+                const date = new Date(editCalendarDate.getFullYear(), editCalendarDate.getMonth(), i);
+                const dayOfWeek = date.getDay();
+
+                const dateOnly = new Date(date);
+                dateOnly.setHours(0,0,0,0);
+                const dateString = date.toISOString().split('T')[0];
+
+                if (WORKING_HOURS.workingDays.includes(dayOfWeek) && dateOnly >= TODAY_DATE && !HOLIDAYS.includes(dateString)) {
+                    const dayBtn = document.createElement('button');
+                    dayBtn.classList.add('day-btn');
+                    dayBtn.textContent = `${daysOfWeek[dayOfWeek]} ${date.getDate()}`;
+                    dayBtn.dataset.date = dateString;
+                    
+                    if (dateString === selectedDate) {
+                        dayBtn.classList.add('active');
+                    }
+
+                    dayBtn.addEventListener('click', () => {
+                        document.querySelectorAll('#editDaySelector .day-btn').forEach(btn => btn.classList.remove('active'));
+                        dayBtn.classList.add('active');
+                        selectedDate = dayBtn.dataset.date;
+                        selectedTime = null;
+                        loadEditTimeSlots(selectedDate);
+                    });
+                    daySelector.appendChild(dayBtn);
+                }
+            }
+
+            if (selectedDate) {
+                loadEditTimeSlots(selectedDate);
+            } else {
+                document.getElementById('editTimeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
+            }
+        }
+        
+        async function loadEditTimeSlots(dateString) {
+            const timeSlotsDiv = document.getElementById('editTimeSlots');
+            timeSlotsDiv.innerHTML = `<div class="loading">Carregando horários...</div>`;
+
+            try {
+                const appointmentsRef = db.collection('agendamentos');
+                const snapshot = await appointmentsRef.where('data', '==', dateString).get();
+                
+                const existingAppointments = {};
+                snapshot.forEach(doc => {
+                    if (doc.id !== editAppointmentId && doc.data().status !== 'cancelado') {
+                        const data = doc.data();
+                        if (existingAppointments[data.hora]) {
+                            existingAppointments[data.hora]++;
+                        } else {
+                            existingAppointments[data.hora] = 1;
+                        }
+                    }
+                });
+
+                const startHour = parseInt(WORKING_HOURS.start.split(':')[0]);
+                const startMinute = parseInt(WORKING_HOURS.start.split(':')[1]);
+                const endHour = parseInt(WORKING_HOURS.end.split(':')[0]);
+                const endMinute = parseInt(WORKING_HOURS.end.split(':')[1]);
+
+                let loopStartTime = new Date(dateString + 'T12:00:00');
+                loopStartTime.setHours(startHour, startMinute, 0, 0);
+                const endTime = new Date(dateString + 'T12:00:00');
+                endTime.setHours(endHour, endMinute, 0, 0);
+
+                const selectedDayDateOnly = new Date(dateString);
+                selectedDayDateOnly.setHours(0,0,0,0);
+                const todayDateOnly = new Date(NOW_DATE_GLOBAL);
+                todayDateOnly.setHours(0,0,0,0);
+
+                if (selectedDayDateOnly.getTime() === todayDateOnly.getTime()) {
+                    let nextHour = new Date(NOW_DATE_GLOBAL);
+                    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+                    if (nextHour < loopStartTime) {
+                        loopStartTime = new Date(loopStartTime);
+                    } else {
+                        loopStartTime = new Date(nextHour);
+                    }
+                }
+                
+                const availableSlots = [];
+                let currentTimeSlot = new Date(loopStartTime);
+                
+                while (currentTimeSlot <= endTime) {
+                    const slotHour = String(currentTimeSlot.getHours()).padStart(2, '0');
+                    const slotMinute = String(currentTimeSlot.getMinutes()).padStart(2, '0');
+                    const time = `${slotHour}:${slotMinute}`;
+                    
+                    const bookingsCount = existingAppointments[time] || 0;
+                    
+                    const selectedDay = new Date(dateString + 'T12:00:00').getDay();
+                    const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+                    const isFull = bookingsCount >= currentMaxAppointments;
+
+                    const isPastTime = selectedDayDateOnly.getTime() === todayDateOnly.getTime() && currentTimeSlot < NOW_DATE_GLOBAL;
+
+                    availableSlots.push({
+                        time,
+                        isFull,
+                        isPastTime,
+                        isSelected: time === selectedTime,
+                    });
+                    currentTimeSlot.setHours(currentTimeSlot.getHours() + 1);
+                }
+
+                timeSlotsDiv.innerHTML = '';
+                availableSlots.forEach(slot => {
+                    const slotElement = document.createElement('div');
+                    slotElement.classList.add('time-slot');
+                    slotElement.textContent = slot.time;
+                    
+                    if (slot.isFull || slot.isPastTime) {
+                        slotElement.classList.add('unavailable');
+                    }
+                    if (slot.isSelected) {
+                        slotElement.classList.add('selected');
+                    }
+
+                    if (!slot.isFull && !slot.isPastTime) {
+                        slotElement.addEventListener('click', () => {
+                            document.querySelectorAll('#editTimeSlots .time-slot').forEach(s => s.classList.remove('selected'));
+                            slotElement.classList.add('selected');
+                            selectedTime = slot.time;
+                        });
+                    }
+                    timeSlotsDiv.appendChild(slotElement);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar horários para edição:", error);
+                timeSlotsDiv.innerHTML = `<div class="error">Erro ao carregar horários: ${error.message}</div>`;
+            }
+        }
+        
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            editAppointmentId = null;
+            selectedDate = null;
+            selectedTime = null;
+            loadAgendamentos();
+        }
+
+        async function saveEditedAppointment() {
+            if (!selectedDate || !selectedTime) {
+                showMessage('Por favor, selecione uma nova data e horário.', 'error', 'edit-message-area');
+                return;
+            }
+
+            try {
+                const docRef = db.collection('agendamentos').doc(editAppointmentId);
+                await docRef.update({
+                    data: selectedDate,
+                    hora: selectedTime,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showMessage('Agendamento alterado com sucesso!', 'success', 'edit-message-area');
+                closeEditModal();
+                loadAgendamentos();
+            } catch (error) {
+                console.error("Erro ao salvar alterações:", error);
+                showMessage(`Erro ao salvar: ${error.message}`, 'error', 'edit-message-area');
+            }
+        }
+
+        // Enviar formulário de agendamento
+        document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!db || !isConfigured) {
+                showMessage('Erro: Firebase não está configurado. Por favor, recarregue a página.', 'error');
+                return;
+            }
+
+            const cliente = document.getElementById('cliente').value;
+            const telefone = document.getElementById('telefone').value;
+            const funcionario = document.getElementById('funcionario').value;
+            const servico = document.getElementById('servico').value;
+            const observacoes = document.getElementById('observacoes').value;
+
+            if (!cliente || !telefone || !funcionario || !servico || !selectedDate || !selectedTime) {
+                showMessage('Por favor, preencha todos os campos obrigatórios e selecione um dia e horário.', 'error');
+                return;
+            }
+            
+            if (HOLIDAYS.includes(selectedDate)) {
+                showMessage('Não é possível agendar neste feriado.', 'error');
+                return;
+            }
+
+            const phoneRegex = /^\d{10,11}$/;
+            if (!phoneRegex.test(telefone)) {
+                showMessage('Formato de telefone inválido. Use apenas números, incluindo o DDD (10 ou 11 dígitos).', 'error');
+                return;
+            }
+            
+            const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
+            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
+            if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
+                showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
+                return;
+            }
+            
+            try {
+                const appointmentsRef = db.collection('agendamentos');
+                const snapshot = await appointmentsRef
+                    .where('data', '==', selectedDate)
+                    .where('hora', '==', selectedTime)
+                    .where('status', '!=', 'cancelado')
+                    .get();
+
+                const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
+                const currentMaxAppointments = selectedDay === 6 ? MAX_APPOINTMENTS_SATURDAY : MAX_APPOINTMENTS_PER_HOUR;
+
+                if (snapshot.docs.length >= currentMaxAppointments) {
+                    showMessage('Este horário não está mais disponível. Por favor, selecione outro.', 'error');
+                    await loadTimeSlots(selectedDate);
+                    return;
+                }
+
+                await db.collection('agendamentos').add({
+                    cliente,
+                    telefone,
+                    funcionario,
+                    servico,
+                    data: selectedDate,
+                    hora: selectedTime,
+                    observacoes,
+                    status: 'agendado',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showMessage('Agendamento realizado com sucesso!', 'success');
+                document.getElementById('agendamentoForm').reset();
+                selectedDate = null;
+                selectedTime = null;
+                document.getElementById('timeSlots').innerHTML = `<div class="loading">Selecione um dia para ver os horários</div>`;
+                currentCalendarDate = new Date(); 
+                generateDaySelector(); 
+            } catch (error) {
+                console.error("Erro ao adicionar agendamento:", error);
+                showMessage(`Erro ao agendar: ${error.message}`, 'error');
+            }
+        });
+
+        // FUNÇÃO QUE GERA E BAIXA O PDF DOS AGENDAMENTOS DE UM DIA
+        function downloadPDF(date, appointments, trajesCount) {
+            if (!window.jspdf) {
+                alert('A biblioteca jsPDF não foi carregada. Tente recarregar a página.');
+                return;
+            }
+            
+            const doc = new window.jspdf.jsPDF();
+            doc.setFontSize(18);
+            doc.text(`Agendamentos do Dia: ${formatDate(date)} | Trajes: ${trajesCount}`, 15, 20);
+            
+            doc.setFontSize(14);
+            let y = 30;
+
+            appointments.forEach(agendamento => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.text(`- Cliente: ${agendamento.cliente} | Serviço: ${agendamento.servico} | Horário: ${agendamento.hora}`, 15, y);
+                y += 10;
+            });
+
+            doc.save(`agendamentos_${date}.pdf`);
+        }
+        
+        // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
+        function loadAgendamentos() {
+            if (!db || !isConfigured) {
+                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
+                return;
+            }
+            
+            const agendamentosList = document.getElementById('agendamentos-list');
+            agendamentosList.innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
+            document.getElementById('search-input').value = '';
+
+            try {
+                db.collection('agendamentos')
+                    .orderBy('data', 'asc')
+                    .onSnapshot(snapshot => {
+                        const agendamentos = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                        allAppointments = agendamentos;
+                        renderAgendamentos(agendamentos);
+                    }, error => {
+                        console.error("Erro ao carregar agendamentos:", error);
+                        agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                    });
+
+            } catch (error) {
+                console.error("Erro ao carregar agendamentos:", error);
+                agendamentosList.innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+            }
+        }
+        
+        // Função para renderizar os agendamentos na tela
+        function renderAgendamentos(agendamentosToRender) {
+            const agendamentosList = document.getElementById('agendamentos-list');
+            agendamentosList.innerHTML = '';
+            
+            if (agendamentosToRender.length === 0) {
+                agendamentosList.innerHTML = `<div class="loading">Nenhum agendamento encontrado.</div>`;
+                return;
+            }
+
+            const agendamentosPorDia = {};
+            agendamentosToRender.forEach(agendamento => {
+                const data = agendamento.data;
+                if (!agendamentosPorDia[data]) {
+                    agendamentosPorDia[data] = [];
+                }
+                agendamentosPorDia[data].push(agendamento);
+            });
+            
+            const datasOrdenadas = Object.keys(agendamentosPorDia).sort((a, b) => new Date(a) - new Date(b));
+            
+            datasOrdenadas.forEach(data => {
+                const agendamentosDoDia = agendamentosPorDia[data];
+                agendamentosDoDia.sort((a, b) => formatTime(a.hora) - formatTime(b.hora));
+                
+                const trajesCount = agendamentosDoDia.filter(a => DRESS_SERVICES.includes(a.servico)).length;
+
+                const diaContainer = document.createElement('div');
+                diaContainer.classList.add('agendamentos-dia');
+                
+                let htmlDia = `
+                    <h3>
+                        <span>📅 Agendamentos do Dia ${formatDate(data)}</span>
+                        <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
+                        <div class="btn-group">
+                          <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                        </div>
+                    </h3>
+                `;
+                
+                agendamentosDoDia.forEach(agendamento => {
+                    htmlDia += `
+                        <div class="agendamento-card">
+                            <div class="agendamento-header">
+                                <span class="agendamento-cliente">${agendamento.cliente}</span>
+                                <span class="agendamento-data">${agendamento.hora}</span>
+                            </div>
+                            <div class="agendamento-info">
+                                <div class="info-item">📞 <strong>Telefone:</strong> ${agendamento.telefone}
+                                    <a href="https://wa.me/55${agendamento.telefone}?text=${encodeURIComponent('Olá ' + agendamento.cliente + ', tudo bem? Aqui é da Mr Jack - trajes para festa. Passando aqui para confirmar sua prova para o dia ' + formatDate(agendamento.data) + ' às ' + agendamento.hora + '? É importante experimentar para garantir que esteja tudo certo, e se aprovado, já levar.')}" target="_blank" class="whatsapp-icon">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                </div>
+                                <div class="info-item">👨‍💼 <strong>Atendente:</strong> ${agendamento.funcionario}</div>
+                                <div class="info-item">💼 <strong>Serviço:</strong> ${agendamento.servico}</div>
+                            </div>
+                            ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
+                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
+                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
+                                ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
+                                <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                diaContainer.innerHTML = htmlDia;
+                agendamentosList.appendChild(diaContainer);
+            });
+        }
+        
+        // Nova função para filtrar os agendamentos
+        function filterAgendamentos(query) {
+            const normalizedQuery = query.toLowerCase().trim();
+            if (normalizedQuery === '') {
+                renderAgendamentos(allAppointments);
+                return;
+            }
+            
+            const filteredAppointments = allAppointments.filter(agendamento => {
+                return agendamento.cliente.toLowerCase().includes(normalizedQuery);
+            });
+            
+            renderAgendamentos(filteredAppointments);
+        }
+
+        // Função para cancelar agendamento
+        async function cancelAgendamento(id) {
+            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                return;
+            }
+            if (!db) {
+                showMessage('Firebase não configurado.', 'error');
+                return;
+            }
+            try {
+                await db.collection('agendamentos').doc(id).update({ status: 'cancelado' });
+                showMessage('Agendamento cancelado com sucesso!', 'success');
+                loadAgendamentos();
+            } catch (error) {
+                console.error("Erro ao cancelar agendamento:", error);
+                showMessage(`Erro ao cancelar agendamento: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para concluir agendamento
+        async function completeAgendamento(id) {
+            if (!confirm('Tem certeza que deseja marcar este agendamento como concluído?')) {
+                return;
+            }
+            if (!db) {
+                showMessage('Firebase não configurado.', 'error');
+                return;
+            }
+            try {
+                await db.collection('agendamentos').doc(id).update({ status: 'concluido' });
+                showMessage('Agendamento concluído com sucesso!', 'success');
+                loadAgendamentos();
+            } catch (error) {
+                console.error("Erro ao concluir agendamento:", error);
+                showMessage(`Erro ao concluir agendamento: ${error.message}`, 'error');
+            }
+        }
+    </script>
 </body>
-
 </html>
