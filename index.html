@@ -838,7 +838,7 @@
                                     <option value="Renato">Renato</option>
                                     <option value="Carol">Carol</option>
                                     <option value="Augusto">Augusto</option>
-                                    <option value="Izabella">Izabella</option>
+                                    <option value="Ana Karen">Ana Karen</option>
                                     <option value="Giovana">Giovana</option>
                                     <option value="Gabriela">Gabriela</option>
                                     <option value="Jaqueline">Jaqueline</option>
@@ -1640,7 +1640,60 @@
 
             doc.save(`agendamentos_${date}.pdf`);
         }
-        
+        // Função helper para verificar se o agendamento é futuro
+function isFutureAppointment(agendamento) {
+    const todayStr = NOW_DATE_GLOBAL.toISOString().split('T')[0];
+
+    if (agendamento.data > todayStr) return true;     // qualquer dia depois de hoje
+    if (agendamento.data < todayStr) return false;    // qualquer dia antes de hoje
+
+    // Se for hoje, compara horário (HH:MM)
+    const nowMinutes = NOW_DATE_GLOBAL.getHours() * 60 + NOW_DATE_GLOBAL.getMinutes();
+    const agMinutes = formatTime(agendamento.hora);
+    return agMinutes >= nowMinutes;
+}
+
+// FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
+function loadAgendamentos() {
+    if (!db || !isConfigured) {
+        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
+        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro: Firebase não está configurado. Por favor, recarregue a página.</div>`;
+        return;
+    }
+
+    document.getElementById('agendamentos-list').innerHTML = `<div class="loading">Carregando agendamentos...</div>`;
+    document.getElementById('concluidos-list').innerHTML = `<div class="loading">Carregando agendamentos concluídos...</div>`;
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-input-concluidos').value = '';
+
+    try {
+        db.collection('agendamentos')
+            .orderBy('timestamp', 'desc')
+            .onSnapshot(snapshot => {
+                allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+
+                // Mantém apenas FUTUROS
+                const futureAppointments = allAppointments.filter(isFutureAppointment);
+
+                nonConcludedAppointments = futureAppointments.filter(a => a.status !== 'concluido');
+                concludedAppointments = futureAppointments.filter(a => a.status === 'concluido');
+
+                renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
+                renderAgendamentos(concludedAppointments, 'concluidos-list', true);
+
+            }, error => {
+                console.error("Erro ao carregar agendamentos:", error);
+                document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+                document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+            });
+
+    } catch (error) {
+        console.error("Erro ao carregar agendamentos:", error);
+        document.getElementById('agendamentos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+        document.getElementById('concluidos-list').innerHTML = `<div class="error">Erro ao carregar agendamentos: ${error.message}</div>`;
+    }
+}
+
         // FUNÇÃO PARA CARREGAR E AGRUPAR AGENDAMENTOS PARA A LISTA
         function loadAgendamentos() {
             if (!db || !isConfigured) {
