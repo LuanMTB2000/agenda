@@ -451,6 +451,23 @@
             transform: translateY(-2px);
         }
         
+        .btn-complete-all {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-complete-all:hover {
+            background: linear-gradient(135deg, #34d399, #6ee7b7);
+            transform: translateY(-2px);
+        }
+        
         .whatsapp-icon {
             color: #25D366;
             margin-left: 10px;
@@ -1647,6 +1664,8 @@
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
                         <div class="btn-group">
                           <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
+                          ${agendamentosDoDia.some(a => a.status !== 'concluido' && a.status !== 'cancelado') ? 
+                            `<button class="btn-complete-all" onclick="completeAllAppointmentsOfDay('${data}')">Concluir Todos</button>` : ''}
                         </div>
                     </h3>
                 `;
@@ -1746,6 +1765,49 @@
             } catch (error) {
                 console.error("Erro ao concluir agendamento:", error);
                 showMessage(`Erro ao concluir agendamento: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para concluir todos os agendamentos de um dia
+        async function completeAllAppointmentsOfDay(date) {
+            if (!confirm(`Tem certeza que deseja marcar TODOS os agendamentos do dia ${formatDate(date)} como concluídos?`)) {
+                return;
+            }
+            
+            if (!db) {
+                showMessage('Firebase não configurado.', 'error');
+                return;
+            }
+
+            try {
+                // Buscar todos os agendamentos do dia que não estão cancelados ou já concluídos
+                const snapshot = await db.collection('agendamentos')
+                    .where('data', '==', date)
+                    .where('status', 'in', ['agendado'])
+                    .get();
+
+                if (snapshot.empty) {
+                    showMessage('Não há agendamentos pendentes para concluir neste dia.', 'error');
+                    return;
+                }
+
+                // Criar um batch para atualizar todos de uma vez
+                const batch = db.batch();
+                let count = 0;
+
+                snapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, { status: 'concluido' });
+                    count++;
+                });
+
+                // Executar todas as atualizações
+                await batch.commit();
+                
+                showMessage(`${count} agendamento(s) do dia ${formatDate(date)} foram marcados como concluídos!`, 'success');
+                
+            } catch (error) {
+                console.error("Erro ao concluir agendamentos do dia:", error);
+                showMessage(`Erro ao concluir agendamentos do dia: ${error.message}`, 'error');
             }
         }
     </script>
