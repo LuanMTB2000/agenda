@@ -937,7 +937,7 @@
 
         // Horários de funcionamento
         const WORKING_HOURS = {
-            start: '10:00',
+            start: '09:00',
             end: '17:00',
             workingDays: [1, 2, 3, 4, 5, 6]
         };
@@ -1575,7 +1575,7 @@
 
             try {
                 db.collection('agendamentos')
-                    .orderBy('timestamp', 'desc')
+                    .orderBy('data', 'asc')
                     .onSnapshot(snapshot => {
                         allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
                         
