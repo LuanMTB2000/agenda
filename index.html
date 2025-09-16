@@ -186,6 +186,7 @@
             color: #9ca3af;
         }
 
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -334,15 +335,6 @@
             font-size: 14px;
             margin: 0;
         }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #34d399);
-            width: auto;
-            padding: 8px 16px;
-            font-size: 14px;
-            margin: 0;
-        }
-        
         .btn-alterar {
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             width: auto;
@@ -448,23 +440,6 @@
         
         .btn-download-pdf:hover {
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
-            transform: translateY(-2px);
-        }
-        
-        .btn-complete-all {
-            background: linear-gradient(135deg, #10b981, #34d399);
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-complete-all:hover {
-            background: linear-gradient(135deg, #34d399, #6ee7b7);
             transform: translateY(-2px);
         }
         
@@ -849,6 +824,21 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </div>
                     </div>
+                    <div id="agendamentos-list">
+                        <div class="loading">Carregando agendamentos...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="concluidos-tab" class="hidden">
+                <div class="form-section">
+                    <div class="list-header">
+                        <h2>✅ Agendamentos Concluídos</h2>
+                        <div class="search-container">
+                            <input type="text" id="search-input-concluidos" placeholder="Pesquisar por cliente..." oninput="filterConcluidos(this.value)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                    </div>
                     <div id="concluidos-list">
                         <div class="loading">Carregando agendamentos concluídos...</div>
                     </div>
@@ -897,7 +887,7 @@
                 • 🚫 Antes das 10h → precisamos de tempo para organizar trajes e ajustes pendentes da manhã.<br>
                 • 🍽 Das 11h às 14h → intervalo de almoço da equipe e da costureira.<br>
                 • ⌛ Após as 17h → pouco tempo para ajustes antes do fim do expediente.</p>
-                <p>💡 Obs.: Esses horários "a evitar" podem ser usados apenas quando não houver outra opção, em casos de alto fluxo de agendamentos.</p>
+                <p>💡 Obs.: Esses horários “a evitar” podem ser usados apenas quando não houver outra opção, em casos de alto fluxo de agendamentos.</p>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e5e7eb;">
                 <p><strong>🤵 3. Provas Masculinas</strong></p>
                 <p>• Todos os clientes do masculino experimentam o traje na semana do evento, nos horários ideais acima.<br>
@@ -938,7 +928,7 @@
         let editCalendarDate = new Date();
         let currentCalendarDate = new Date();
         let allAppointments = []; // Armazenará todos os agendamentos para a pesquisa
-        let concludedAppointments = [];
+        let concluidedAppointments = [];
         let nonConcludedAppointments = [];
 
         // Constante global para a data/hora atual (usada para horários passados)
@@ -947,7 +937,7 @@
 
         // Horários de funcionamento
         const WORKING_HOURS = {
-            start: '10:00',
+            start: '09:00',
             end: '17:00',
             workingDays: [1, 2, 3, 4, 5, 6]
         };
@@ -999,16 +989,6 @@
                 currentCalendarDate = new Date(); 
                 generateDaySelector(); 
             }
-        }
-
-        // Função para abrir modal das regras
-        function openRegrasModal() {
-            document.getElementById('regras-modal').style.display = 'flex';
-        }
-
-        // Função para fechar modal das regras
-        function closeRegrasModal() {
-            document.getElementById('regras-modal').style.display = 'none';
         }
 
         // Carregar configuração ao iniciar
@@ -1594,13 +1574,12 @@
             document.getElementById('search-input-concluidos').value = '';
 
             try {
-                // REMOVIDA A LIMITAÇÃO DE DATA - AGORA CARREGA TODOS OS AGENDAMENTOS
                 db.collection('agendamentos')
                     .orderBy('data', 'asc')
                     .onSnapshot(snapshot => {
                         allAppointments = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
                         
-                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido' && a.status !== 'cancelado');
+                        nonConcludedAppointments = allAppointments.filter(a => a.status !== 'concluido');
                         concludedAppointments = allAppointments.filter(a => a.status === 'concluido');
 
                         renderAgendamentos(nonConcludedAppointments, 'agendamentos-list');
@@ -1664,8 +1643,6 @@
                         <span class="trajes-count">👗 Trajes: ${trajesCount}</span>
                         <div class="btn-group">
                           <button class="btn-download-pdf" onclick="downloadPDF('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')}, ${trajesCount})">Baixar PDF</button>
-                          ${agendamentosDoDia.some(a => a.status !== 'concluido' && a.status !== 'cancelado') ? 
-                            `<button class="btn-complete-all" onclick="completeAllAppointmentsOfDay('${data}')">Concluir Todos</button>` : ''}
                         </div>
                     </h3>
                 `;
@@ -1689,9 +1666,9 @@
                             ${agendamento.observacoes ? `<p style="font-size: 0.9em; color: #4b5563; margin-top: 10px;"><strong>Obs:</strong> ${agendamento.observacoes}</p>` : ''}
                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                                 <span class="status ${agendamento.status}">${agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}</span>
-                                ${agendamento.status !== 'cancelado' && agendamento.status !== 'concluido' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
-                                ${agendamento.status !== 'concluido' && agendamento.status !== 'cancelado' ? `<button class="btn btn-success" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
-                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>` : ''}
+                                ${agendamento.status !== 'cancelado' ? `<button class="btn btn-danger" onclick="cancelAgendamento('${agendamento.id}')">Cancelar</button>` : ''}
+                                ${agendamento.status !== 'concluido' ? `<button class="btn" style="background: linear-gradient(135deg, #10b981, #34d399); width: auto; padding: 8px 16px; font-size: 14px; margin: 0;" onclick="completeAgendamento('${agendamento.id}')">Concluir</button>` : ''}
+                                <button class="btn btn-alterar" onclick="openEditModal('${agendamento.id}')">Alterar</button>
                             </div>
                         </div>
                     `;
@@ -1744,6 +1721,7 @@
             try {
                 await db.collection('agendamentos').doc(id).update({ status: 'cancelado' });
                 showMessage('Agendamento cancelado com sucesso!', 'success');
+                loadAgendamentos();
             } catch (error) {
                 console.error("Erro ao cancelar agendamento:", error);
                 showMessage(`Erro ao cancelar agendamento: ${error.message}`, 'error');
@@ -1762,69 +1740,12 @@
             try {
                 await db.collection('agendamentos').doc(id).update({ status: 'concluido' });
                 showMessage('Agendamento concluído com sucesso!', 'success');
+                loadAgendamentos();
             } catch (error) {
                 console.error("Erro ao concluir agendamento:", error);
                 showMessage(`Erro ao concluir agendamento: ${error.message}`, 'error');
             }
         }
-
-        // Função para concluir todos os agendamentos de um dia
-        async function completeAllAppointmentsOfDay(date) {
-            if (!confirm(`Tem certeza que deseja marcar TODOS os agendamentos do dia ${formatDate(date)} como concluídos?`)) {
-                return;
-            }
-            
-            if (!db) {
-                showMessage('Firebase não configurado.', 'error');
-                return;
-            }
-
-            try {
-                // Buscar todos os agendamentos do dia que não estão cancelados ou já concluídos
-                const snapshot = await db.collection('agendamentos')
-                    .where('data', '==', date)
-                    .where('status', 'in', ['agendado'])
-                    .get();
-
-                if (snapshot.empty) {
-                    showMessage('Não há agendamentos pendentes para concluir neste dia.', 'error');
-                    return;
-                }
-
-                // Criar um batch para atualizar todos de uma vez
-                const batch = db.batch();
-                let count = 0;
-
-                snapshot.docs.forEach(doc => {
-                    batch.update(doc.ref, { status: 'concluido' });
-                    count++;
-                });
-
-                // Executar todas as atualizações
-                await batch.commit();
-                
-                showMessage(`${count} agendamento(s) do dia ${formatDate(date)} foram marcados como concluídos!`, 'success');
-                
-            } catch (error) {
-                console.error("Erro ao concluir agendamentos do dia:", error);
-                showMessage(`Erro ao concluir agendamentos do dia: ${error.message}`, 'error');
-            }
-        }
     </script>
 </body>
-</html>" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        </div>
-                    </div>
-                    <div id="agendamentos-list">
-                        <div class="loading">Carregando agendamentos...</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="concluidos-tab" class="hidden">
-                <div class="form-section">
-                    <div class="list-header">
-                        <h2>✅ Agendamentos Concluídos</h2>
-                        <div class="search-container">
-                            <input type="text" id="search-input-concluidos" placeholder="Pesquisar por cliente..." oninput="filterConcluidos(this.value)">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21
+</html>
