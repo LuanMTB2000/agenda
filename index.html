@@ -439,7 +439,7 @@
                                 </h2>
                                 <p style="margin: 5px 0 0 0; opacity: 0.9;">${agendamentosDoDia.length} agendamento${agendamentosDoDia.length !== 1 ? 's' : ''}</p>
                             </div>
-                            <button class="pdf-btn" onclick="gerarPDFDoDia('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">
+                            <button class="pdf-btn" onclick="window.gerarPDFDoDia('${data}', ${JSON.stringify(agendamentosDoDia).replace(/"/g, '&quot;')})">
                                 📄 Baixar PDF
                             </button>
                         </div>
@@ -506,7 +506,6 @@
                 exibirAgendamentosAgrupados(agendamentos);
                 
             } catch (error) {
-                console.error('Erro:', error);
                 console.error('Erro detalhado:', error);
                 container.innerHTML = `
                     <div class="error">
