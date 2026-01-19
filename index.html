@@ -762,6 +762,8 @@
                                     <option value="Carol">Carol</option>
                                     <option value="Augusto">Augusto</option>
                                     <option value="Yasmin">Yasmin</option>
+                                     <option value="Lorrayne">Lorrayne</option>
+                                    
                                     <option value="Yasmin">Yasmim Vitoria</option>
                                 </select>
                             </div>
@@ -950,7 +952,8 @@
         const MAX_APPOINTMENTS_SATURDAY = 6; 
         
         // Feriados a serem removidos
-        const HOLIDAYS = ['2025-11-20'];
+        const HOLIDAYS = ['2026-02-16'];
+        const HOLIDAYS = ['2026-02-17'];
         
         // Tipos de serviço que contam como "trajes"
         const DRESS_SERVICES = ['Prova', 'Primeira Prova Vestido', 'Retirada Vestido'];
@@ -1489,7 +1492,7 @@
             }
             
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
-            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
+            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido', 'Prova'];
             if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
                 showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
                 return;
