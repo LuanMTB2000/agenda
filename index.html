@@ -1492,7 +1492,7 @@
             }
             
             const selectedDayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
-            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido', 'Prova'];
+            const allowedMondayServices = ['Atendimento', 'Primeira Prova Vestido', 'Retirada Vestido'];
             if (selectedDayOfWeek === 1 && !allowedMondayServices.includes(servico)) {
                 showMessage('Na segunda-feira, apenas os serviços de "Atendimento", "Primeira Prova Vestido" e "Retirada Vestido" estão disponíveis.', 'error');
                 return;
